@@ -5,10 +5,16 @@ const adminPassword = 'tranquangdai501';
 
 const sendMail = (toEmail, sub, htmlContent) => {
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
         auth: {
             user: adminEmail,
             pass: adminPassword
+        },
+        tls: {
+            // do not fail on invalid certs
+            rejectUnauthorized: false
         }
     });
 
