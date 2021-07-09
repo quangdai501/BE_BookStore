@@ -10,7 +10,7 @@ function getRandomNumberBetween(min, max) {
 class LoginController {
 
   // [POST] api/auth/login
-  async login(req, res, next) {
+  async login(req, res) {
 
     const user = await User.findOne({
       email: req.body.email,
@@ -35,7 +35,7 @@ class LoginController {
   }
 
   // [POST] - /api/auth/confirm-email
-  async confirmEmail(req, res, next) {
+  async confirmEmail(req, res) {
     const { name, email, password } = req.body;
     const user = { name, email, password };
 

@@ -4,16 +4,21 @@ class orderController {
 
 
     // [get] /api/orders/mine/:userID
-    async getAllOrderByUserId(req, res, next) {
-        const all = await Order.find({ user_id: req.params.userID });
-        if (all) {
-            res.send(all);
-        } else {
-            res.status(404).send({ error: 'Wrong user id' });
+    async getAllOrderByUserId(req, res) {
+        try {
+            const all = await Order.find({ user_id: req.params.userID });
+            if (all) {
+                res.status(200).send(all);
+            }
+            else {
+                res.status(500).send({ error: 'Wrong user id' });
+            }
+        } catch (error) {
+            res.status(500).send({ error: error });
         }
     }
     //[POST] api/orders/createOrders
-    async createBill(req, res, next) {
+    async createBill(req, res) {
         const bill = new Order();
         bill.user_id = req.body.user_id;
         bill.total = req.body.total;
@@ -31,7 +36,7 @@ class orderController {
         }
     }
     // [patch] /api/orders/shipper/:orderID/:status
-    async updateStateOrderForShipper(req, res, next) {
+    async updateStateOrderForShipper(req, res) {
         try {
             const id = req.params.orderID;
             const status = req.params.status;
@@ -78,7 +83,7 @@ class orderController {
         }
     }
     //[patch] /api/orders/admin/:orderID
-    async updateStateOrderForAdmin(req, res, next) {
+    async updateStateOrderForAdmin(req, res) {
         const updateState = await Order.updateOne(
             { _id: req.params.orderID },
             {
@@ -94,7 +99,7 @@ class orderController {
         }
     }
     // patch /api/orders/admin/cancelOrder/'+ orderID
-    async orderCancel(req, res, next) {
+    async orderCancel(req, res) {
         const updateState = await Order.updateOne(
             { _id: req.params.orderID },
             {
@@ -110,7 +115,7 @@ class orderController {
         }
     }
     //lấy tất cả đơn hàng [get] /api/orders/admin/all
-    async getAllOrder(req, res, next) {
+    async getAllOrder(req, res) {
         try {
             const allOrder = await Order.find().populate({ path: 'user_id', model: 'user' });
             if (allOrder) {
@@ -123,7 +128,7 @@ class orderController {
     }
 
     // lấy các đơn hàng đã hủy  /api/orders/admin/cancel
-    async getOrderIsCancel(req, res, next) {
+    async getOrderIsCancel(req, res) {
         const all = await Order.find({ deliveryStatus: "Đã hủy" });
         if (all) {
             res.json(all);
@@ -134,7 +139,7 @@ class orderController {
     }
 
     //get order by orderID  [get] /api/orders/admin/orderDetail/:orderID
-    async getOrderById(req, res, next) {
+    async getOrderById(req, res) {
         const order = await Order.findOne({ _id: req.params.orderID }).populate({ path: 'billDetail.product', model: 'product' });
         if (order) {
             res.json(order);
@@ -145,7 +150,7 @@ class orderController {
     }
 
     // [POST] - /api/orders/sendmail
-    sendMailOrder(req, res, next) {
+    sendMailOrder(req, res) {
         const { userInfo, cartItems } = req.body;
         const sub = 'Đơn hàng';
 
@@ -190,7 +195,7 @@ class orderController {
 
     //lay list don hang
     // [get] api/orders/shipper/:status
-    async getOrder(req, res, next) {
+    async getOrder(req, res) {
         try {
             const status = req.params.status;
             if (status !== null) {

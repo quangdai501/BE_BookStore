@@ -20,7 +20,7 @@ db.connect();
 const pulicPath = path.join(__dirname, '..', 'public');
 router.use(express.static(pulicPath));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 

@@ -1,15 +1,14 @@
 const Product = require('../../models/product.model');
 
 const getPagination = (page, size) => {
-    const limit = size ? size : 16;
+    const limit = size ? size : 12;
     const offset = page ? page * limit : 0;
     return { limit, offset };
 }
 class ProductController {
     // [GET] /api/products
     // get all or by brandname, categoryname, search
-    async getAllProduct(req, res, next) {
-        console.log('được nề');
+    async getAllProduct(req, res) {
         const page = req.query.page;
         const size = req.query.size;
         const brandname = req.query.brandname
@@ -65,7 +64,7 @@ class ProductController {
     }
 
     // [GET] /api/products/:id
-    async getProductById(req, res, next) {
+    async getProductById(req, res) {
         try {
             const productId = req.params.id;
             const product = await Product.findOne({ _id: productId });
@@ -76,7 +75,7 @@ class ProductController {
     }
 
     //[Post] /api/products/addProduct
-    async addProduct(req, res, next) {
+    async addProduct(req, res) {
         const product = new Product();
         product.name = req.body.name;
         product.categoryname = req.body.categoryname;
@@ -95,7 +94,7 @@ class ProductController {
 
     }
     //[DELETE] /api/products/deleteProduct/:productID
-    async deleteProductByID(req, res, next) {
+    async deleteProductByID(req, res) {
         try {
             const productDelete = await Product.remove({ _id: req.params.productID });
             if (productDelete) {
@@ -109,7 +108,7 @@ class ProductController {
         }
     }
     //[PATCH] api/products/updateProduct/:productID
-    async updateProductByID(req, res, next) {
+    async updateProductByID(req, res) {
         const { name, categoryname, image, price,
             description, brandname, quantity, weight } = req.body;
         try {
@@ -134,7 +133,7 @@ class ProductController {
     }
 
     //[PATCH] /api/products/updateProductQuantity/:productID
-    async updateProductQuantityByID(req, res, next) {
+    async updateProductQuantityByID(req, res) {
         const qty = req.body.qty;
         try {
             const update = await Product.updateOne({ _id: req.params.productID }, {
