@@ -20,7 +20,24 @@ db.connect();
 const pulicPath = path.join(__dirname, '..', 'public');
 router.use(express.static(pulicPath));
 app.use(bodyParser.json());
-app.use(cors({ credentials: true, origin: "https://nongsan3ae.netlify.app" }));
+
+var allowedOrigins = ['http://localhost:3000',
+    'https://nongsan3ae.netlify.app'];
+app.use(cors({
+    credentials: true,
+    origin: function (origin, callback) {
+        // allow requests with no origin 
+        // (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            var msg = 'The CORS policy for this site does not ' +
+                'allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    }
+}));
+// app.use(cors({ credentials: true, origin: "https://nongsan3ae.netlify.app" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
