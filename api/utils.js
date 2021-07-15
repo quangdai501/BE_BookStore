@@ -8,7 +8,7 @@ const getToken = (user) => {
       email: user.email,
       role: user.role,
     },
-    process.env.JWT_SECRET || 'somethingsecret',
+    process.env.JWT_SECRET,
     {
       expiresIn: '48h',
     }
@@ -16,12 +16,13 @@ const getToken = (user) => {
 };
 
 const isAuth = (req, res, next) => {
-  const data = req.headers.authentization;
-  const token = data.split(' ')[1];
-  // const userInfo = JSON.parse(req.cookies.userInfo);
+  // const authentizationHeaders = req.headers.authentization;
+  // const token = authentizationHeaders.split(' ')[1];
+  const userInfo = JSON.parse(req.cookies.userInfo);
+  const { token } = userInfo;
   try {
     if (token) {
-      jwt.verify(token, process.env.JWT_SECRET || 'somethingsecret', (err, decode) => {
+      jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
         if (err) {
           return res.status(401).send({ message: 'Invalid Token' });
         }
