@@ -23,7 +23,8 @@ app.use(bodyParser.json());
 
 app.use(cors({
     credentials: true,
-    origin: '*'
+    origin: ['http://localhost:3000',
+        'https://nongsan3ae.netlify.app']
 }));
 // app.use(cors({ credentials: true, origin: "https://nongsan3ae.netlify.app" }));
 app.use(bodyParser.urlencoded({ extended: true }));
