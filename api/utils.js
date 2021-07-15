@@ -16,10 +16,10 @@ const getToken = (user) => {
 };
 
 const isAuth = (req, res, next) => {
-  // const authentizationHeaders = req.headers.authentization;
-  // const token = authentizationHeaders.split(' ')[1];
-  const userInfo = JSON.parse(req.cookies.userInfo);
-  const { token } = userInfo;
+  const authentizationHeaders = req.headers.authentization;
+  const token = authentizationHeaders.split(' ')[1];
+  // const userInfo = JSON.parse(req.cookies.userInfo);
+  // const { token } = userInfo;
   try {
     if (token) {
       jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
