@@ -16,7 +16,6 @@ class LoginController {
       email: req.body.email,
       password: req.body.password
     });
-
     if (user) {
       res.send({
         _id: user._id,

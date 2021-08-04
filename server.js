@@ -17,17 +17,18 @@ db.connect();
 
 // bodyParser
 
-const pulicPath = path.join(__dirname, '..', 'public');
-router.use(express.static(pulicPath));
+// const pulicPath = path.join(__dirname, '..', 'public');
+// router.use(express.static(pulicPath));
+
 app.use(bodyParser.json());
-app.use(cors({
-    credentials: true,
-    origin: ['http://localhost:3000',
-        'https://nongsan3ae.netlify.app']
-}));
-// app.use(cors({ credentials: true, origin: "https://nongsan3ae.netlify.app" }));
-app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(cors({
+//     credentials: true,
+//     origin: ['http://localhost:3000',
+//         'https://nongsan3ae.netlify.app']
+// }));
 app.use(cookieParser());
+app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/api', router);
 

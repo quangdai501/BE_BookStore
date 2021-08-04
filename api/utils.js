@@ -10,7 +10,7 @@ const getToken = (user) => {
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: '48h',
+      expiresIn: '24h',
     }
   );
 };
