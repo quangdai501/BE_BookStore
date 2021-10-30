@@ -57,3 +57,6 @@ module.exports = mongoose.model('bill', billSchema);
 function vovan() {
     console.log("abc");
 }
+function vovan2() {
+    console.log("abc");
+}
