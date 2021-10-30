@@ -31,11 +31,7 @@ const billSchema = new Schema({
             qty: { type: Number, required: true },
         },
     ],
-    isPaid: {
-        type: Boolean,
-        require: true,
-        default: false
-    },
+
     paidAt: { type: Date },
     deliveryStatus: {
         type: String,
