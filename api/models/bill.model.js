@@ -31,14 +31,11 @@ const billSchema = new Schema({
             qty: { type: Number, required: true },
         },
     ],
-
     paidAt: { type: Date },
     deliveryStatus: {
         type: String,
         default: 'Đang chờ xử lý'
     },
-    deliveredAt: { type: Date },
-    shipper: { type: mongoose.Schema.Types.ObjectID, ref: 'user' },
     payment: {
         type: String,
         require: true,
@@ -55,3 +52,8 @@ const billSchema = new Schema({
 );
 
 module.exports = mongoose.model('bill', billSchema);
+
+// theem tinh nang vo van
+function vovan() {
+    console.log("abc");
+}
