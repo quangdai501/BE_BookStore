@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 
@@ -9,7 +8,8 @@ const userRoute = require('./user.route');
 const orderRoute = require('./order.route');
 const categoryRoute = require('./category.route');
 const brandRoute = require('./brand.route');
-
+const authorRoute = require('./author.route');
+const publisherRoute = require('./publisher.route');
 
 router.use('/auth', authRoute);
 router.use('/products', productRoute);
@@ -18,4 +18,6 @@ router.use('/users', userRoute);
 router.use('/orders', orderRoute);
 router.use('/category', categoryRoute);
 router.use('/brand', brandRoute);
+router.use('/author', authorRoute);
+router.use('/publisher', publisherRoute);
 module.exports = router;

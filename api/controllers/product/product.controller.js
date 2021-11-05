@@ -7,44 +7,39 @@ const getPagination = (page, size) => {
 }
 class ProductController {
     // [GET] /api/products
-    // get all or by brandname, categoryname, search
+    // get all or by author, category, search
     async getAllProduct(req, res) {
         const page = req.query.page;
         const size = req.query.size;
-        const brandname = req.query.brandname
-            ? {
-                brandname: req.query.brandname
-            } : {};
-        const categoryname = req.query.categoryname
-            ? {
-                categoryname: req.query.categoryname
-            } : {};
-        const search = req.query.search
-            ? {
-                $or: [{
-                    name:
-                    {
+        const author = req.query.author ? {
+            author: req.query.author
+        } : {};
+        const category = req.query.category ? {
+            category: req.query.category
+        } : {};
+        const search = req.query.search ? {
+            $or: [{
+                    name: {
                         $regex: req.query.search,
                         $options: 'i',
                     }
                 },
                 {
-                    brandname:
-                    {
+                    author: {
                         $regex: req.query.search,
                         $options: 'i',
                     }
                 },
                 {
-                    categoryname:
-                    {
+                    category: {
                         $regex: req.query.search,
                         $options: 'i',
                     }
-                }]
-            } : {};
+                }
+            ]
+        } : {};
         const { limit, offset } = getPagination(page - 1, size);
-        const product = await Product.paginate({ ...categoryname, ...brandname, ...search }, { offset, limit })
+        const product = await Product.paginate({...category, ...author, ...search }, { offset, limit })
         if (product) {
             res.send({
                 totalItems: product.totalDocs,
@@ -53,11 +48,9 @@ class ProductController {
                 currentpage: product.page,
                 searchKey: req.query.search
             })
-        }
-        else {
+        } else {
             res.status(500).send({
-                message:
-                    err.message || "Some error occurred while retrieving products.",
+                message: err.message || "Some error occurred while retrieving products.",
             });
 
         };
@@ -76,55 +69,61 @@ class ProductController {
 
     //[Post] /api/products/addProduct
     async addProduct(req, res) {
-        const product = new Product();
-        product.name = req.body.name;
-        product.categoryname = req.body.categoryname;
-        product.image = req.body.image;
-        product.price = req.body.price;
-        product.description = req.body.description;
-        product.brandname = req.body.brandname;
-        product.quantity = req.body.quantity;
-        product.weight = req.body.weight;
-        try {
-            const saveProduct = await product.save();
-            res.send(saveProduct);
-        } catch (error) {
-            res.status(501).send({ error: error.message });
-        }
+            const product = new Product();
+            product.name = req.body.name;
+            product.category = req.body.category;
+            product.image = req.body.image;
+            product.price = req.body.price;
+            product.description = req.body.description;
+            product.author = req.body.author;
+            product.quantity = req.body.quantity;
+            product.publisher = req.body.publisher;
+            try {
+                const saveProduct = await product.save();
+                res.send(saveProduct);
+            } catch (error) {
+                res.status(501).send({ error: error.message });
+            }
 
-    }
-    //[DELETE] /api/products/deleteProduct/:productID
-    async deleteProductByID(req, res) {
-        try {
-            const productDelete = await Product.remove({ _id: req.params.productID });
-            if (productDelete) {
-                res.send(productDelete);
-            }
-            else {
-                res.send('Xóa sản phẩm lỗi');
-            }
-        } catch (error) {
-            res.send({ message: error.message });
         }
-    }
-    //[PATCH] api/products/updateProduct/:productID
+        //[DELETE] /api/products/deleteProduct/:productID
+    async deleteProductByID(req, res) {
+            try {
+                const productDelete = await Product.remove({ _id: req.params.productID });
+                if (productDelete) {
+                    res.send(productDelete);
+                } else {
+                    res.send('Xóa sản phẩm lỗi');
+                }
+            } catch (error) {
+                res.send({ message: error.message });
+            }
+        }
+        //[PATCH] api/products/updateProduct/:productID
     async updateProductByID(req, res) {
-        const { name, categoryname, image, price,
-            description, brandname, quantity, weight } = req.body;
+        const {
+            name,
+            category,
+            image,
+            price,
+            description,
+            author,
+            quantity,
+            publisher
+        } = req.body;
         try {
-            const productUpdate = await Product.updateOne({ _id: req.params.productID },
-                {
-                    $set: {
-                        name: name,
-                        categoryname: categoryname,
-                        image: image,
-                        price: price,
-                        description: description,
-                        brandname: brandname,
-                        quantity: quantity,
-                        weight: weight
-                    }
-                });
+            const productUpdate = await Product.updateOne({ _id: req.params.productID }, {
+                $set: {
+                    name: name,
+                    category: category,
+                    image: image,
+                    price: price,
+                    description: description,
+                    author: author,
+                    quantity: quantity,
+                    publisher: publisher
+                }
+            });
 
             res.send(productUpdate);
         } catch (error) {
