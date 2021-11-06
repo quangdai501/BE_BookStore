@@ -12,9 +12,11 @@ router.get('/admin/orderDetail/:orderID', isAuth, orderController.getOrderById);
 router.post('/sendmail', isAuth, orderController.sendMailOrder);
 router.post('/order-by-delivery-status', isAuth, isAdmin, orderController.getOrderByDeliveryStatus);
 router.post('/createOrder', isAuth, orderController.createBill);
+// router.post('/createOrder', orderController.createBill);
 
 router.patch('/shipper/:orderID/:status', isAuth, isShipper, orderController.updateStateOrderForShipper);
-router.patch('/admin/:orderID', isAuth, isAdmin, orderController.updateStateOrderForAdmin);
+// router.patch('/admin/:orderID', isAuth, isAdmin, orderController.updateStateOrderForAdmin);
+router.post('/admin/:orderID', isAuth, orderController.updateStateOrderForAdmin);
 router.patch('/admin/cancelOrder/:orderID', isAuth, orderController.orderCancel);
 
 module.exports = router;

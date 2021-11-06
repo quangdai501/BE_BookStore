@@ -2,8 +2,7 @@ const User = require('../../models/user.model');
 
 class UserController {
 
-
-        // [PATCH] - /api/users/update-info/:userID
+    // [PATCH] - /api/users/update-info/:userID
     async updateUserInfo(req, res) {
             try {
                 const user = await User.updateOne({ _id: req.params.userID }, {
