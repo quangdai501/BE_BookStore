@@ -10,7 +10,7 @@ router.get('/:id', productController.getProductById);
 
 // add a product
 router.post('/addProduct', isAuth, isAdmin, productController.addProduct);
-
+// router.post('/addProduct', productController.addProduct);
 //Delete Product By ID
 router.delete('/deleteProduct/:productID', isAuth, isAdmin, productController.deleteProductByID);
 
