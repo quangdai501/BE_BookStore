@@ -1,8 +1,11 @@
 const Product = require('../../models/product.model');
+const Category = require('../../models/category.model');
+const Publisher = require('../../models/publisher.model');
+const Author = require('../../models/author.model');
 
 const getPagination = (page, size) => {
     const limit = size ? size : 12;
-    const offset = page ? page * limit : 0;
+    const offset = page ? page * limit : 1;
     return { limit, offset };
 }
 class ProductController {
@@ -17,43 +20,70 @@ class ProductController {
         const category = req.query.category ? {
             category: req.query.category
         } : {};
-        const search = req.query.search ? {
-            $or: [{
-                    name: {
-                        $regex: req.query.search,
-                        $options: 'i',
-                    }
-                },
-                {
-                    author: {
-                        $regex: req.query.search,
-                        $options: 'i',
-                    }
-                },
-                {
-                    category: {
-                        $regex: req.query.search,
-                        $options: 'i',
-                    }
-                }
+        const search = req.query.search
+        const query = (search) ? {
+            $or: [
+                { name: { $regex: new RegExp(search, 'i') } },
+                { "categorys.name": { $regex: new RegExp(search, 'i') } },
+                { "authors.name": { $regex: new RegExp(search, 'i') } },
             ]
-        } : {};
+        } : {}
         const { limit, offset } = getPagination(page - 1, size);
-        const product = await Product.paginate({...category, ...author, ...search }, { offset, limit })
-        if (product) {
-            res.send({
-                totalItems: product.totalDocs,
-                product: product.docs,
-                totalPages: product.totalPages,
-                currentpage: product.page,
-                searchKey: req.query.search
-            })
-        } else {
-            res.status(500).send({
-                message: err.message || "Some error occurred while retrieving products.",
-            });
-
+        const options = {
+            page: offset,
+            limit: limit,
         };
+
+        const myAggregate = Product.aggregate(
+            [{
+                    $lookup: {
+                        from: Category.collection.name,
+                        localField: 'category',
+                        foreignField: '_id',
+                        as: 'categorys',
+                    }
+                },
+                { $unwind: "$categorys" },
+                {
+                    $lookup: {
+                        from: Publisher.collection.name,
+                        localField: 'publisherId',
+                        foreignField: '_id',
+                        as: 'publisher',
+                    }
+                },
+                { $unwind: "$publisher" },
+                {
+                    $lookup: {
+                        from: Author.collection.name,
+                        localField: 'author',
+                        foreignField: '_id',
+                        as: 'authors',
+                    }
+                },
+                { $unwind: "$authors" },
+                { $match: {...category, ...author, ...query } }
+            ]
+        );
+        Product.aggregatePaginate(myAggregate, options, function(err, results) {
+            if (err) {
+                res.status(500).send({
+                    message: err.message || "Some error occurred while retrieving products.",
+                });
+            } else {
+
+                res.send({
+                    totalItems: results.totalDocs,
+                    product: results.docs,
+                    totalPages: results.totalPages,
+                    currentpage: results.page,
+                    searchKey: req.query.search
+                })
+            }
+        })
+
+
+
     }
 
     // [GET] /api/products/:id
@@ -77,7 +107,7 @@ class ProductController {
             product.description = req.body.description;
             product.author = req.body.author;
             product.quantity = req.body.quantity;
-            product.publisher = req.body.publisher;
+            product.publisherId = req.body.publisher;
             try {
                 const saveProduct = await product.save();
                 res.send(saveProduct);
@@ -121,7 +151,7 @@ class ProductController {
                     description: description,
                     author: author,
                     quantity: quantity,
-                    publisher: publisher
+                    publisherId: publisher
                 }
             });
 
