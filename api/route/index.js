@@ -16,7 +16,7 @@ router.use('/shoping-cart', shopingCartRoute);
 router.use('/users', userRoute);
 router.use('/orders', orderRoute);
 router.use('/category', categoryRoute);
-
 router.use('/author', authorRoute);
 router.use('/publisher', publisherRoute);
+
 module.exports = router;

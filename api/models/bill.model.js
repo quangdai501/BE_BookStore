@@ -7,12 +7,28 @@ const billSchema = new Schema({
         ref: 'user',
         require: true,
     },
+    name: {
+        type: String, 
+        require: true
+    },
     total: {
         type: Number,
     },
+    orderCode: {
+        type: String, 
+        require: true
+    },
     address: {
-        type: String,
-        require: true,
+       to_ward_code:{
+           type: String
+       },
+       to_district_id: {
+           type: String
+       },
+       province: {type: String},
+       district: {type: String},
+       ward: {type: String},
+       detail: {type: String},
     },
     phone: {
         type: String,
@@ -38,19 +54,11 @@ const billSchema = new Schema({
         default: 'Đang chờ xử lý'
     },
     deliveredAt: { type: Date },
-    orderCode: {
-        type: String, 
-        require: true
-    },
-    // shipper: { type: mongoose.Schema.Types.ObjectID, ref: 'user' },
+  
     payment: {
         type: String,
         require: true,
         default: 'Thanh toán khi nhận hàng'
-    },
-    shipPrice: {
-        type: Number,
-        default: 15000
     }
 },
     {
