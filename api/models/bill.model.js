@@ -20,7 +20,7 @@ const billSchema = new Schema({
     },
     billDetail: [
         {
-            product: {
+            productId: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'product',
                 required: true
@@ -38,7 +38,11 @@ const billSchema = new Schema({
         default: 'Đang chờ xử lý'
     },
     deliveredAt: { type: Date },
-    shipper: { type: mongoose.Schema.Types.ObjectID, ref: 'user' },
+    orderCode: {
+        type: String, 
+        require: true
+    },
+    // shipper: { type: mongoose.Schema.Types.ObjectID, ref: 'user' },
     payment: {
         type: String,
         require: true,
