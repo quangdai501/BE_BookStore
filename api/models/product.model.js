@@ -24,15 +24,18 @@ const ProductSchema = new Schema({
         required: true
     },
     author: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "author",
         required: true
     },
-    publisher: {
-        type: String,
+    publisherId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "publisher",
         required: true
     },
     category: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "category",
         required: true
     },
 }, {
