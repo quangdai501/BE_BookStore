@@ -73,7 +73,7 @@ class ProductController {
             } else {
 
                 res.send({
-                    pageCount: results.pageCount,
+                    totalItems: results.totalDocs,
                     product: results.docs,
                     totalPages: results.totalPages,
                     currentpage: results.page,
