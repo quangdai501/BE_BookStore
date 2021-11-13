@@ -5,7 +5,7 @@ const Author = require('../../models/author.model');
 
 const getPagination = (page, size) => {
     const limit = size ? size : 12;
-    const offset = page ? page * limit : 1;
+    const offset = page ? page : 1;
     return { limit, offset };
 }
 class ProductController {
@@ -28,7 +28,7 @@ class ProductController {
                 { "authors.name": { $regex: new RegExp(search, 'i') } },
             ]
         } : {}
-        const { limit, offset } = getPagination(page - 1, size);
+        const { limit, offset } = getPagination(page, size);
         const options = {
             page: offset,
             limit: limit,
@@ -73,7 +73,7 @@ class ProductController {
             } else {
 
                 res.send({
-                    totalItems: results.totalDocs,
+                    pageCount: results.pageCount,
                     product: results.docs,
                     totalPages: results.totalPages,
                     currentpage: results.page,
