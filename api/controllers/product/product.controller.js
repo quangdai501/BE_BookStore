@@ -28,10 +28,13 @@ class ProductController {
                 { "authors.name": { $regex: new RegExp(search, 'i') } },
             ]
         } : {}
+
+        const sort = req.query.sort ? { sort: req.query.sort } : {}
         const { limit, offset } = getPagination(page, size);
         const options = {
             page: offset,
             limit: limit,
+            ...sort
         };
 
         const myAggregate = Product.aggregate(
