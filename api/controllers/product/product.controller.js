@@ -128,7 +128,7 @@ class ProductController {
                 ]
             );
 
-            res.send(product);
+            res.send(product[0]);
         } catch {
             res.status(404).send({ msg: "Không tìm thấy sản phẩm!" });
         }
