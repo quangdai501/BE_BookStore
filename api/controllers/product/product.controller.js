@@ -2,12 +2,14 @@ const Product = require('../../models/product.model');
 const Category = require('../../models/category.model');
 const Publisher = require('../../models/publisher.model');
 const Author = require('../../models/author.model');
-
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const getPagination = (page, size) => {
     const limit = size ? size : 12;
     const offset = page ? page : 1;
     return { limit, offset };
 }
+
 class ProductController {
     // [GET] /api/products
     // get all or by author, category, search
@@ -15,10 +17,10 @@ class ProductController {
         const page = req.query.page;
         const size = req.query.size;
         const author = req.query.author ? {
-            author: req.query.author
+            author: ObjectId(req.query.author)
         } : {};
         const category = req.query.category ? {
-            category: req.query.category
+            category: ObjectId(req.query.category)
         } : {};
         const search = req.query.search
         const query = (search) ? {
@@ -80,7 +82,7 @@ class ProductController {
                     product: results.docs,
                     totalPages: results.totalPages,
                     currentpage: results.page,
-                    searchKey: req.query.search
+                    searchKey: req.query.search,
                 })
             }
         })
@@ -93,7 +95,39 @@ class ProductController {
     async getProductById(req, res) {
         try {
             const productId = req.params.id;
-            const product = await Product.findOne({ _id: productId });
+            // const product = await Product.findOne({ _id: productId });
+            const product = await Product.aggregate(
+                [{
+                        $lookup: {
+                            from: Category.collection.name,
+                            localField: 'category',
+                            foreignField: '_id',
+                            as: 'categorys',
+                        }
+                    },
+                    { $unwind: "$categorys" },
+                    {
+                        $lookup: {
+                            from: Publisher.collection.name,
+                            localField: 'publisherId',
+                            foreignField: '_id',
+                            as: 'publisher',
+                        }
+                    },
+                    { $unwind: "$publisher" },
+                    {
+                        $lookup: {
+                            from: Author.collection.name,
+                            localField: 'author',
+                            foreignField: '_id',
+                            as: 'authors',
+                        }
+                    },
+                    { $unwind: "$authors" },
+                    { $match: { _id: ObjectId(productId) } }
+                ]
+            );
+
             res.send(product);
         } catch {
             res.status(404).send({ msg: "Không tìm thấy sản phẩm!" });
