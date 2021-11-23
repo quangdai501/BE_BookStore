@@ -17,10 +17,12 @@ class ProductController {
         const page = req.query.page;
         const size = req.query.size;
         const author = req.query.author ? {
-            author: ObjectId(req.query.author)
+            // author: ObjectId(req.query.author)
+            "authors.name": { $regex: new RegExp(req.query.author, 'i') }
         } : {};
         const category = req.query.category ? {
-            category: ObjectId(req.query.category)
+            // category: ObjectId(req.query.category)
+            "categorys.name": { $regex: new RegExp(req.query.category, 'i') }
         } : {};
         const search = req.query.search
         const query = (search) ? {
@@ -83,6 +85,7 @@ class ProductController {
                     totalPages: results.totalPages,
                     currentpage: results.page,
                     searchKey: req.query.search,
+                    categor: {...category, ...author, ...query }
                 })
             }
         })
