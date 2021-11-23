@@ -85,7 +85,7 @@ class ProductController {
                     totalPages: results.totalPages,
                     currentpage: results.page,
                     searchKey: req.query.search,
-                    categor: {...category, ...author, ...query }
+
                 })
             }
         })
