@@ -6,7 +6,7 @@ const { isAuth, isAdmin } = require('../utils');
 // get all users
 router.get('/', isAuth, isAdmin, userController.getAllUsers);
 //get userinfo
-router.get('/getuser-info/:userID', userController.getUserInfoByID);
+router.get('/getuser-info/', isAuth, userController.getUserInfoByID);
 //update userinfo
 router.patch('/update-info/:userID', isAuth, userController.updateUserInfo);
 // router.patch('/update-info/:userID', isAuth, userController.updateUserInfo);

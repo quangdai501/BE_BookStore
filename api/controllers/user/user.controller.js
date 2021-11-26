@@ -29,10 +29,10 @@ class UserController {
                 res.status(500).send({ message: error.message });
             }
         }
-        // [GET] - /api/users/getuser-info/:userID
+        // [GET] - /api/users/getuser-info/
     async getUserInfoByID(req, res) {
             try {
-                const user = await User.findById({ _id: req.params.userID });
+                const user = await User.findById({ _id: req.user._id });
                 res.send(user);
             } catch (error) {
                 res.status(404).send({ message: error.message });
@@ -42,7 +42,7 @@ class UserController {
     async getAllUsers(req, res) {
 
         try {
-            const users = await User.find();
+            const users = await User.find({ role: 'user' });
             if (users) {
                 res.send(users);
             } else {
