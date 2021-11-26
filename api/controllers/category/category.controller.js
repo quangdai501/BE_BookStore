@@ -28,7 +28,7 @@ class CategoryController {
         }
     }
 
-    // [POST] - /api/category/add
+    // [POST] - /api/category/
     async addCategory(req, res) {
         const { name, description } = req.body;
         try {

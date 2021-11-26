@@ -18,7 +18,7 @@ class UserController {
                 res.status(500).send({ message: error.message });
             }
         }
-        // [GET] - /api/users/getUser-info/:userID
+        // [GET] - /api/users/getuser-info/:userID
     async getUserInfoByID(req, res) {
             try {
                 const user = await User.findById({ _id: req.params.userID });

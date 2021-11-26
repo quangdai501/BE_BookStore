@@ -28,7 +28,7 @@ class AuthorController {
         }
     }
 
-    // [POST] - /api/Author/add
+    // [POST] - /api/Author/
     async addAuthor(req, res) {
         const { name } = req.body;
         try {

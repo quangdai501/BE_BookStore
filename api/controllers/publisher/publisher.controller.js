@@ -28,7 +28,7 @@ class PublisherController {
         }
     }
 
-    // [POST] - /api/Publisher/add
+    // [POST] - /api/Publisher/
     async addPublisher(req, res) {
         const { name } = req.body;
         try {
