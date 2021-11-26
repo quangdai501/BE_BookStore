@@ -2,6 +2,7 @@ const Product = require('../../models/product.model');
 const Category = require('../../models/category.model');
 const Publisher = require('../../models/publisher.model');
 const Author = require('../../models/author.model');
+const Review = require('../../models/review.model');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const getPagination = (page, size) => {
@@ -126,6 +127,14 @@ class ProductController {
                             as: 'authors',
                         }
                     },
+                    {
+                        $lookup: {
+                            from: Review.collection.name,
+                            localField: '_id',
+                            foreignField: 'product',
+                            as: 'reviews',
+                        }
+                    },
                     { $unwind: "$authors" },
                     { $match: { _id: ObjectId(productId) } }
                 ]
@@ -211,6 +220,23 @@ class ProductController {
                 }
             });
             res.send(update);
+        } catch (error) {
+            res.send({ message: error.message });
+        }
+    }
+
+    //[post] /api/products/createreview/:productID
+    async createReview(req, res) {
+        const { rating, comment } = req.body
+        const productId = req.params.productID;
+        try {
+            const query = { user: req.user._id, product: productId },
+                update = { name: req.user.name, rating: rating, comment: comment },
+                options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+            // Find the document
+            const data = await Review.findOneAndUpdate(query, update, options);
+            res.send(data);
         } catch (error) {
             res.send({ message: error.message });
         }
