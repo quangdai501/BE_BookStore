@@ -8,7 +8,7 @@ router.get('/', isAuth, isAdmin, userController.getAllUsers);
 //get userinfo
 router.get('/getuser-info/:userID', userController.getUserInfoByID);
 //update userinfo
-router.patch('/update-info/:userID', userController.updateUserInfo);
+router.patch('/update-info/:userID', isAuth, userController.updateUserInfo);
 // router.patch('/update-info/:userID', isAuth, userController.updateUserInfo);
 // create new user
 router.post('/add-user', userController.addUser);

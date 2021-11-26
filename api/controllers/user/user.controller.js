@@ -5,15 +5,26 @@ class UserController {
     // [PATCH] - /api/users/update-info/:userID
     async updateUserInfo(req, res) {
             try {
-                const user = await User.updateOne({ _id: req.params.userID }, {
-                    $set: {
-                        name: req.body.name,
-                        email: req.body.email,
-                        phone: req.body.phone,
-                        address: req.body.address,
-                    }
-                });
-                res.send(user);
+                // const user = await User.updateOne({ _id: req.params.userID }, {
+                //     $set: {
+                //         name: req.body.name,
+                //         // email: req.body.email,
+                //         phone: req.body.phone,
+                //         address: req.body.address,
+                //     }
+                // }, { new: true });
+                // res.send(user);
+                const name = req.body.name ? { name: req.body.name } : {}
+                const phone = req.body.phone ? { phone: req.body.phone } : {}
+                const address = req.body.address ? { address: req.body.address } : {}
+                const id = req.params.userID ? req.params.userID : req.user._id
+                const
+                    update = {...name, ...phone, ...address },
+                    options = { new: true, };
+                // console.log(update)
+                // Find the document
+                const data = await User.findByIdAndUpdate(id, update, options);
+                res.send(data)
             } catch (error) {
                 res.status(500).send({ message: error.message });
             }
