@@ -35,22 +35,23 @@ class paymentController {
 
         const createDate = dateFormat(date, "yyyymmddHHmmss");
         // const orderId = order._id.toString();
-        const orderId = order._id;
+        const orderId = order._id.toString();
+
         // var orderId = dateFormat(date, 'HHmmss');
 
         var locale = "vn";
         var currCode = "VND";
         var vnp_Params = {};
-        vnp_Params["vnp_Version"] = "2";
+        vnp_Params["vnp_Version"] = "2.1.0";
         vnp_Params["vnp_Command"] = "pay";
         vnp_Params["vnp_TmnCode"] = tmnCode;
 
         vnp_Params["vnp_Locale"] = locale;
         vnp_Params["vnp_CurrCode"] = currCode;
         vnp_Params["vnp_TxnRef"] = orderId;
-        vnp_Params["vnp_OrderInfo"] = "Thanh toán hóa đơn";
+        vnp_Params["vnp_OrderInfo"] = "thanh toan hoa don";
         vnp_Params["vnp_OrderType"] = "billpayment";
-        vnp_Params["vnp_Amount"] = req.body.total;
+        vnp_Params["vnp_Amount"] = Number(req.body.total);
         vnp_Params["vnp_ReturnUrl"] = returnUrl;
         vnp_Params["vnp_IpAddr"] = ipAddr;
         vnp_Params["vnp_CreateDate"] = createDate;
