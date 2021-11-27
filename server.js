@@ -7,10 +7,10 @@ const db = require('./api/config/db');
 const dotenv = require('dotenv');
 const cors = require('cors');
 
+dotenv.config();
+
 const app = express();
 const port = process.env.PORT || 5000;
-
-dotenv.config();
 
 // connect to db
 db.connect();

@@ -1,61 +1,41 @@
 const Order = require('../../models/bill.model');
 const querystring = require("qs");
 const sha256 = require("sha256");
-// const dateFormat = require("dateformat");
-
-const tmnCode = process.env.VNP_TMN_CODE;
-const secretKey = process.env.VNP_HASH_SECRET;
-const url = process.env.VNP_URL;
-const returnUrl = process.env.VNP_RETURN_URL;
-
+const dateFormat = require("dateformat");
+const dotenv = require('dotenv');
+dotenv.config();
 
 class paymentController {
-    createPayment(req, res) {
-        console.log('create payment')
+    async createPayment(req, res) {
+        const tmnCode = process.env.VNP_TMN_CODE;
+        const secretKey = process.env.VNP_HASH_SECRET;
+        const url = process.env.VNP_URL;
+        const returnUrl = process.env.VNP_RETURN_URL;
         let ipAddr =
             req.headers["x-forwarded-for"] ||
             req.connection.remoteAddress ||
             req.socket.remoteAddress ||
             req.connection.socket.remoteAddress;
 
-        // const order = new OrderModel({
-        //     order_code: "",
-        //     to_ward_code: req.body.to_ward_code,
-        //     to_district_id: req.body.to_district_id,
-        //     cancelOrder: false,
+        const bill = new Order();
+        bill.user_id = req.body.user_id;
+        bill.name = req.body.name;
+        bill.total = req.body.total;
+        bill.address = req.body.address;
+        bill.phone = req.body.phone;
+        bill.billDetail = req.body.billDetail;
+        bill.payment = req.body.payment;
+        bill.deliveredStatus = req.body.diliveryStatus;
+        const date = new Date();
+        bill.paidAt = date;
+        const order = await bill.save();
 
-        //     orderItems: req.body.orderItems,
-        //     shippingAddress: {
-        //         province: req.body.shippingAddress.province,
-        //         district: req.body.shippingAddress.district,
-        //         ward: req.body.shippingAddress.ward,
-        //         detail: req.body.shippingAddress.more,
-        //         name: req.body.shippingAddress.name,
-        //         phone: req.body.shippingAddress.phone,
-        //     },
-        //     paymentMethod: req.body.paymentMethod,
-        //     paymentResult: req.body.paymentResult
-        //         ? {
-        //             id: req.body.paymentResult.id,
-        //             status: req.body.paymentResult.status,
-        //             update_time: req.body.paymentResult.update_time,
-        //             email_address: req.body.paymentResult.payer.email_address,
-        //         }
-        //         : "",
-        //     totalPrice: req.body.totalPrice,
-        //     status: req.body.status ? req.body.status : "pendding",
-        //     name: req.body.name,
-        //     user: req.body.user,
-        // });
-
-        // order.save();
 
         let vnpUrl = url;
-        const date = new Date();
 
         const createDate = dateFormat(date, "yyyymmddHHmmss");
         // const orderId = order._id.toString();
-        const orderId = 'skdjhdfjh';
+        const orderId = order._id;
         // var orderId = dateFormat(date, 'HHmmss');
 
         var locale = "vn";
@@ -70,7 +50,7 @@ class paymentController {
         vnp_Params["vnp_TxnRef"] = orderId;
         vnp_Params["vnp_OrderInfo"] = "Thanh toán hóa đơn";
         vnp_Params["vnp_OrderType"] = "billpayment";
-        vnp_Params["vnp_Amount"] = 10000000;
+        vnp_Params["vnp_Amount"] = req.body.total;
         vnp_Params["vnp_ReturnUrl"] = returnUrl;
         vnp_Params["vnp_IpAddr"] = ipAddr;
         vnp_Params["vnp_CreateDate"] = createDate;
