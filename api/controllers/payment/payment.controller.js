@@ -2,6 +2,7 @@ const Order = require('../../models/bill.model');
 const querystring = require("qs");
 const sha256 = require("sha256");
 const dateFormat = require("dateformat");
+const crypto = require("crypto");
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -34,10 +35,7 @@ class paymentController {
         let vnpUrl = url;
 
         const createDate = dateFormat(date, "yyyymmddHHmmss");
-        // const orderId = order._id.toString();
         const orderId = order._id.toString();
-
-        // var orderId = dateFormat(date, 'HHmmss');
 
         var locale = "vn";
         var currCode = "VND";
@@ -51,7 +49,7 @@ class paymentController {
         vnp_Params["vnp_TxnRef"] = orderId;
         vnp_Params["vnp_OrderInfo"] = "thanh toan hoa don";
         vnp_Params["vnp_OrderType"] = "billpayment";
-        vnp_Params["vnp_Amount"] = Number(req.body.total);
+        vnp_Params["vnp_Amount"] = Number(req.body.total * 100);
         vnp_Params["vnp_ReturnUrl"] = returnUrl;
         vnp_Params["vnp_IpAddr"] = ipAddr;
         vnp_Params["vnp_CreateDate"] = createDate;
@@ -59,19 +57,16 @@ class paymentController {
 
         vnp_Params = sortObject(vnp_Params);
 
-        var signData =
-            secretKey + querystring.stringify(vnp_Params, { encode: false });
-
-        var secureHash = sha256(signData);
-
-        vnp_Params["vnp_SecureHashType"] = "SHA256";
-        vnp_Params["vnp_SecureHash"] = secureHash;
-        vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: true });
+        const signData = querystring.stringify(vnp_Params, { encode: false });
+        const hmac = crypto.createHmac("sha512", secretKey);
+        const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
+        vnp_Params['vnp_SecureHash'] = signed;
+        vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
 
         res.status(200).json({ code: "00", data: vnpUrl });
     };
 
-    returnPayment(req, res) {
+    async returnPayment(req, res) {
         try {
             let vnp_Params = req.query;
             const secureHash = vnp_Params.vnp_SecureHash;
@@ -80,21 +75,28 @@ class paymentController {
             delete vnp_Params.vnp_SecureHashType;
 
             vnp_Params = sortObject(vnp_Params);
-            const signData =
-                secretKey + querystring.stringify(vnp_Params, { encode: false });
 
-            const checkSum = sha256(signData);
+
+            // const signData =
+            //     secretKey + querystring.stringify(vnp_Params, { encode: false });
+
+            // const checkSum = sha256(signData);
+
+            const signData = querystring.stringify(vnp_Params, { encode: false });
+            const hmac = crypto.createHmac("sha512", secretKey);
+            const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
+
 
             const id = vnp_Params.vnp_TxnRef;
 
             // res.status(200).json({ code: vnp_Params.vnp_ResponseCode });
-            if (secureHash === checkSum) {
+            if (secureHash === signed) {
                 if (vnp_Params.vnp_ResponseCode == "00") {
                     res.status(200).json({ code: vnp_Params.vnp_ResponseCode });
                 } else {
                     console.log("orderId", id);
-                    // const DeleteOrder = await OrderModel.findById({ _id: id });
-                    // await DeleteOrder.remove();
+                    const DeleteOrder = await Order.findById({ _id: id });
+                    await DeleteOrder.remove();
                     res.status(200).json({ code: vnp_Params.vnp_ResponseCode });
                 }
             } else {
@@ -114,14 +116,18 @@ class paymentController {
 
         vnp_Params = sortObject(vnp_Params);
 
-        const signData =
-            secretKey + querystring.stringify(vnp_Params, { encode: false });
+        // const signData =
+        //     secretKey + querystring.stringify(vnp_Params, { encode: false });
 
-        const checkSum = sha256(signData);
+        // const checkSum = sha256(signData);
+
+        const signData = querystring.stringify(vnp_Params, { encode: false });
+        const hmac = crypto.createHmac("sha512", secretKey);
+        const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
 
         const id = vnp_Params.vnp_TxnRef;
 
-        if (secureHash === checkSum) {
+        if (secureHash === signed) {
             var orderId = vnp_Params["vnp_TxnRef"];
             var rspCode = vnp_Params["vnp_ResponseCode"];
             //Kiem tra du lieu co hop le khong, cap nhat trang thai don hang va gui ket qua cho VNPAY theo dinh dang duoi
@@ -132,23 +138,38 @@ class paymentController {
     };
 
 }
-function sortObject(o) {
-    var sorted = {},
-        key,
-        a = [];
-
-    for (key in o) {
-        if (o.hasOwnProperty(key)) {
-            a.push(key);
+function sortObject(obj) {
+    var sorted = {};
+    var str = [];
+    var key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            str.push(encodeURIComponent(key));
         }
     }
-
-    a.sort();
-
-    for (key = 0; key < a.length; key++) {
-        sorted[a[key]] = o[a[key]];
+    str.sort();
+    for (key = 0; key < str.length; key++) {
+        sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
     }
     return sorted;
 }
+// function sortObject(o) {
+//     var sorted = {},
+//         key,
+//         a = [];
+
+//     for (key in o) {
+//         if (o.hasOwnProperty(key)) {
+//             a.push(key);
+//         }
+//     }
+
+//     a.sort();
+
+//     for (key = 0; key < a.length; key++) {
+//         sorted[a[key]] = o[a[key]];
+//     }
+//     return sorted;
+// }
 
 module.exports = new paymentController;
