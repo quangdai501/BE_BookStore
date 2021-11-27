@@ -2,21 +2,22 @@ const jwt = require('jsonwebtoken');
 
 const getToken = (user) => {
     return jwt.sign({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-    },
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        },
         process.env.JWT_SECRET, {
-        expiresIn: '24h',
-    }
+            expiresIn: '24h',
+        }
     );
 };
 
 const isAuth = (req, res, next) => {
     try {
         // const authentizationHeaders = req.headers.authentization;
-        const authentizationHeaders = req.headers.Authorization;
+        // const authentizationHeaders = req.headers.Authorization;
+        const authentizationHeaders = req.headers.authorization;
         const token = authentizationHeaders.split(' ')[1];
         if (token) {
             jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
@@ -32,7 +33,7 @@ const isAuth = (req, res, next) => {
         }
     } catch (error) {
         res.status(500).send(error.message);
-        // console.log(error.message);
+        // console.log(req.headers);
     }
 };
 
