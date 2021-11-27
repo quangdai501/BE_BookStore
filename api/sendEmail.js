@@ -1,7 +1,9 @@
 const nodemailer = require('nodemailer');
 
-const adminEmail = 'tranquangdai5012@gmail.com';
-const adminPassword = 'tranquangdai501';
+// const adminEmail = 'tranquangdai5012@gmail.com';
+// const adminPassword = 'tranquangdai501';
+const adminEmail = 'bookstore.ute.mail@gmail.com'
+const adminPassword = "b5D{8HJuz=n7-'e>"
 
 const sendMail = (toEmail, sub, htmlContent) => {
     const transporter = nodemailer.createTransport({
@@ -25,7 +27,7 @@ const sendMail = (toEmail, sub, htmlContent) => {
         html: htmlContent
     };
 
-    transporter.sendMail(mailOptions, function (error, info) {
+    transporter.sendMail(mailOptions, function(error, info) {
         if (error) {
             console.log(error.message);
         } else {
@@ -35,5 +37,3 @@ const sendMail = (toEmail, sub, htmlContent) => {
 }
 
 module.exports = sendMail;
-
-

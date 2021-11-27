@@ -59,7 +59,7 @@ class UserController {
         if (parseInt(code) === global.code) {
             try {
                 const user = new User({
-                    name: "global.name",
+                    name: global.name,
                     email: global.email,
                     password: global.password
                 });
