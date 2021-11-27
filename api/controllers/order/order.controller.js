@@ -8,166 +8,168 @@ class orderController {
 
     // [get] /api/orders/mine/:userID
     async getAllOrderByUserId(req, res) {
-            try {
-                const all = await Order.find({ user_id: req.params.userID });
-                if (all) {
-                    res.status(200).send(all);
-                } else {
-                    res.status(500).send({ error: 'Wrong user id' });
-                }
-            } catch (error) {
-                res.status(500).send({ error: error });
+        try {
+            const all = await Order.find({ user_id: req.params.userID });
+            if (all) {
+                res.status(200).send(all);
+            } else {
+                res.status(500).send({ error: 'Wrong user id' });
             }
+        } catch (error) {
+            res.status(500).send({ error: error });
         }
-        //[POST] api/orders/createOrders
+    }
+    //[POST] api/orders/createOrder
     async createBill(req, res) {
-            console.log(req.body);
-            const bill = new Order();
-            bill.user_id = req.body.user_id;
-            bill.name = req.body.name;
-            bill.total = req.body.total;
-            bill.address = req.body.address;
-            bill.phone = req.body.phone;
-            bill.billDetail = req.body.billDetail;
-            bill.payment = req.body.payment;
-            bill.deliveredStatus = req.body.diliveryStatus;
-            if (bill.payment === "Thanh toán online") {
-                const date = new Date();
-                bill.paidAt = date;
-            }
-            try {
-                const addToCart = await bill.save();
-                if (addToCart) {
-                    res.send(addToCart);
-                } else {
-                    res.send('Tạo đơn hàng không thành công');
-                }
-            } catch (error) {
-                res.status(500).send({ err: error.message })
-            }
+        const bill = new Order();
+        bill.user_id = req.body.user_id;
+        bill.name = req.body.name;
+        bill.total = req.body.total;
+        bill.address = req.body.address;
+        bill.phone = req.body.phone;
+        bill.billDetail = req.body.billDetail;
+        bill.payment = req.body.payment;
+        bill.deliveredStatus = req.body.diliveryStatus;
+        if (bill.payment === "Thanh toán online") {
+            const date = new Date();
+            bill.paidAt = date;
         }
-        // [patch] /api/orders/shipper/:orderID/:status
+        try {
+            const addToCart = await bill.save();
+            if (addToCart) {
+                res.send(addToCart);
+            } else {
+                res.send('Tạo đơn hàng không thành công');
+            }
+        } catch (error) {
+            console.log(error)
+
+            res.status(500).send({ err: error.message })
+        }
+    }
+    // [patch] /api/orders/shipper/:orderID/:status
     async updateStateOrderForShipper(req, res) {
+        try {
+            const id = req.params.orderID;
+            const status = req.params.status;
+            const updateState = null;
+            if (status == 'NhanDon') {
+                updateState = await Order.updateOne({ _id: id }, {
+                    $set: {
+                        deliveryStatus: "Đang giao hàng",
+                    }
+                });
+            } else if (status == 'DaGiao') {
+                updateState = await Order.updateOne({ _id: id }, {
+                    $set: {
+                        deliveryStatus: "Đã giao thành công",
+                        deliveredAt: Date.now(),
+                        isPaid: true
+                    }
+                });
+            } else if (status == 'Huy') {
+                updateState = await Order.updateOne({ _id: id }, {
+                    $set: {
+                        deliveryStatus: "Giao hàng không thành công",
+                        deliveredAt: Date.now()
+                    }
+                });
+            } else if (status == 'paid') {
+                updateState = await Order.updateOne({ _id: id }, {
+                    $set: {
+                        deliveryStatus: "Giao hàng không thành công",
+                        deliveredAt: Date.now()
+                    }
+                });
+            } else {
+                console.log('fail');
+                res.json({ error: 'cannot update' });
+            }
+        } catch (error) {
+            res.send({ message: error.message });
+        }
+    }
+    //[post] /api/orders/admin/:orderID
+    async updateStateOrderForAdmin(req, res) {
+        const orderInfo = await Order.findById({ _id: req.params.orderID });
+        if (orderInfo) {
+            let items = [];
+            orderInfo.billDetail.map((x) => {
+                let item = {};
+                item.name = x.name;
+                item.quantity = parseInt(x.qty);
+                item.price = x.price;
+
+                items.push(item);
+            });
+            const orderGHN = {
+                payment_type_id: 2,
+
+                to_name: orderInfo.name,
+                to_phone: orderInfo.phone,
+                to_address: `${orderInfo.address.province}, ${orderInfo.address.district}, ${orderInfo.address.ward}, ${orderInfo.address.detail}`,
+                to_ward_code: orderInfo.address.to_ward_code,
+                to_district_id: orderInfo.address.to_district_id,
+
+                weight: 200,
+                length: 1,
+                width: 19,
+                height: 10,
+
+                service_id: 0,
+                service_type_id: 2,
+                payment_type_id: 2,
+
+                note: "",
+                required_note: "KHONGCHOXEMHANG",
+
+                cod_amount: orderInfo.payment === "Thanh toán online" ? 0 : orderInfo.total,
+                items: items,
+            }
             try {
-                const id = req.params.orderID;
-                const status = req.params.status;
-                const updateState = null;
-                if (status == 'NhanDon') {
-                    updateState = await Order.updateOne({ _id: id }, {
-                        $set: {
-                            deliveryStatus: "Đang giao hàng",
-                        }
-                    });
-                } else if (status == 'DaGiao') {
-                    updateState = await Order.updateOne({ _id: id }, {
-                        $set: {
-                            deliveryStatus: "Đã giao thành công",
-                            deliveredAt: Date.now(),
-                            isPaid: true
-                        }
-                    });
-                } else if (status == 'Huy') {
-                    updateState = await Order.updateOne({ _id: id }, {
-                        $set: {
-                            deliveryStatus: "Giao hàng không thành công",
-                            deliveredAt: Date.now()
-                        }
-                    });
-                } else if (status == 'paid') {
-                    updateState = await Order.updateOne({ _id: id }, {
-                        $set: {
-                            deliveryStatus: "Giao hàng không thành công",
-                            deliveredAt: Date.now()
-                        }
-                    });
+                const createOrderGHN = await axios.post(
+                    "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/create",
+                    orderGHN, {
+                    headers: {
+                        shop_id: process.env.Shop_ID,
+                        Token: process.env.Token_GHN,
+                    },
+                }
+                );
+                const updateState = await Order.updateOne({ _id: req.params.orderID }, {
+                    $set: {
+                        deliveryStatus: "Chờ vận chuyển",
+                        orderCode: createOrderGHN.data.data.order_code,
+                    }
+                });
+                if (updateState) {
+                    res.json(updateState);
                 } else {
                     console.log('fail');
                     res.json({ error: 'cannot update' });
                 }
             } catch (error) {
-                res.send({ message: error.message });
+                console.log(error)
+                const code = error.response.data.code;
+                res.status(code).send({ err: error.message })
             }
         }
-        //[patch] /api/orders/admin/:orderID
-    async updateStateOrderForAdmin(req, res) {
-            const orderInfo = await Order.findById({ _id: req.params.orderID });
-            if (orderInfo) {
-                let items = [];
-                orderInfo.billDetail.map((x) => {
-                    let item = {};
-                    item.name = x.name;
-                    item.quantity = parseInt(x.qty);
-                    item.price = x.price;
-
-                    items.push(item);
-                });
-                const orderGHN = {
-                    payment_type_id: 2,
-
-                    to_name: orderInfo.name,
-                    to_phone: orderInfo.phone,
-                    to_address: `${orderInfo.address.province}, ${orderInfo.address.district}, ${orderInfo.address.ward}, ${orderInfo.address.detail}`,
-                    to_ward_code: orderInfo.address.to_ward_code,
-                    to_district_id: orderInfo.address.to_district_id,
-
-                    weight: 200,
-                    length: 1,
-                    width: 19,
-                    height: 10,
-
-                    service_id: 0,
-                    service_type_id: 2,
-                    payment_type_id: 2,
-
-                    note: "",
-                    required_note: "KHONGCHOXEMHANG",
-
-                    cod_amount: orderInfo.payment === "Thanh toán online" ? 0 : orderInfo.total,
-                    items: items,
-                }
-                try {
-                    const createOrderGHN = await axios.post(
-                        "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/create",
-                        orderGHN, {
-                            headers: {
-                                shop_id: process.env.Shop_ID,
-                                Token: process.env.Token_GHN,
-                            },
-                        }
-                    );
-                    const updateState = await Order.updateOne({ _id: req.params.orderID }, {
-                        $set: {
-                            deliveryStatus: "Chờ vận chuyển",
-                            orderCode: createOrderGHN.data.data.order_code,
-                        }
-                    });
-                    if (updateState) {
-                        res.json(updateState);
-                    } else {
-                        console.log('fail');
-                        res.json({ error: 'cannot update' });
-                    }
-                } catch (error) {
-                    const code = error.response.data.code;
-                    res.status(code).send({ err: error.message })
-                }
-            }
-        }
-        // patch /api/orders/admin/cancelOrder/'+ orderID
+    }
+    // patch /api/orders/admin/cancelOrder/'+ orderID
     async orderCancel(req, res) {
-            const updateState = await Order.updateOne({ _id: req.params.orderID }, {
-                $set: {
-                    deliveryStatus: "Đã hủy",
-                }
-            });
-            if (updateState) {
-                res.json(updateState);
-            } else {
-                console.log('fail');
-                res.json({ error: 'cannot update' });
+        const updateState = await Order.updateOne({ _id: req.params.orderID }, {
+            $set: {
+                deliveryStatus: "Đã hủy",
             }
+        });
+        if (updateState) {
+            res.json(updateState);
+        } else {
+            console.log('fail');
+            res.json({ error: 'cannot update' });
         }
-        //lấy tất cả đơn hàng [get] /api/orders/admin/all
+    }
+    //lấy tất cả đơn hàng [get] /api/orders/admin/all
     async getAllOrder(req, res) {
         try {
             const allOrder = await Order.find().populate({ path: 'user_id', model: 'user' });
