@@ -21,7 +21,6 @@ class orderController {
     }
     //[POST] api/orders/createOrder
     async createBill(req, res) {
-        console.log(req.body.userID);
         const bill = new Order();
         bill.user_id = req.body.user_id;
         bill.name = req.body.name;
@@ -204,10 +203,10 @@ class orderController {
 
     // [POST] - /api/orders/sendmail
     sendMailOrder(req, res) {
-        const { name, cartItems } = req.body;
+        const { userInfo, cartItems } = req.body;
         const sub = 'Đơn hàng';
 
-        let htmlContent = `<p>Chào ${name},</p>
+        let htmlContent = `<p>Chào ${userInfo.name},</p>
         <p>Cảm ơn bạn đã đặt hàng tại BOOKSTOREUTE. Dưới đây là chi tiết đơn hàng của bạn.</p>
         <table style="border: 1px solid black; border-collapse: collapse;">
             <thead>
