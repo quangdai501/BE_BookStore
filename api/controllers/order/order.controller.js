@@ -43,7 +43,6 @@ class orderController {
             }
         } catch (error) {
             console.log(error)
-
             res.status(500).send({ err: error.message })
         }
     }
@@ -99,7 +98,6 @@ class orderController {
                 item.name = x.name;
                 item.quantity = parseInt(x.qty);
                 item.price = x.price;
-
                 items.push(item);
             });
             const orderGHN = {
@@ -151,7 +149,7 @@ class orderController {
             } catch (error) {
                 console.log(error)
                 const code = error.response.data.code;
-                res.status(code).send({ err: error.message })
+                res.status(code).send(error.response.data)
             }
         }
     }
@@ -169,10 +167,10 @@ class orderController {
             res.json({ error: 'cannot update' });
         }
     }
-    //lấy tất cả đơn hàng [get] /api/orders/admin/all
+    //lấy tất cả đơn hàng [get] /api/orders
     async getAllOrder(req, res) {
         try {
-            const allOrder = await Order.find().populate({ path: 'user_id', model: 'user' });
+            const allOrder = await Order.find();
             if (allOrder) {
                 res.send(allOrder);
             }
@@ -209,7 +207,7 @@ class orderController {
         const sub = 'Đơn hàng';
 
         let htmlContent = `<p>Chào ${userInfo.name},</p>
-        <p>Cảm ơn bạn đã đặt hàng tại NS3AE. Dưới đây là chi tiết đơn hàng của bạn.</p>
+        <p>Cảm ơn bạn đã đặt hàng tại BOOKSTOREUTE. Dưới đây là chi tiết đơn hàng của bạn.</p>
         <table style="border: 1px solid black; border-collapse: collapse;">
             <thead>
                 <tr>
@@ -236,8 +234,8 @@ class orderController {
 
         htmlContent += `
         </tbody></table>
-        <p>Cảm ơn bạn đã tin tưởng NS3AE. Chúc bạn 1 ngày vui vẻ!</p>
-        <p>NS3AE</p>`;
+        <p>Cảm ơn bạn đã tin tưởng BOOKSTOREUTE. Chúc bạn 1 ngày vui vẻ!</p>
+        <p>BOOKSTOREUTE</p>`;
 
         try {
             sendMail(userInfo.email, sub, htmlContent);
