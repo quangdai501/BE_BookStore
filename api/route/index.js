@@ -10,6 +10,7 @@ const categoryRoute = require('./category.route');
 const authorRoute = require('./author.route');
 const publisherRoute = require('./publisher.route');
 const paymentRoute = require('./payment.route');
+const statisticRoute = require('./statistic.route')
 router.use('/auth', authRoute);
 router.use('/products', productRoute);
 router.use('/shoping-cart', shopingCartRoute);
@@ -19,4 +20,5 @@ router.use('/category', categoryRoute);
 router.use('/author', authorRoute);
 router.use('/publisher', publisherRoute);
 router.use('/payment', paymentRoute)
+router.use('/statistic', statisticRoute)
 module.exports = router;
