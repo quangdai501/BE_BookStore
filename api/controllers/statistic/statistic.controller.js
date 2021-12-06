@@ -65,16 +65,16 @@ class StatisticController {
                     {
                         $group: {
                             _id: { productName: "$billDetail.name", productId: "$billDetail.productId" },
-                            total: { $sum: 1 },
+                            value: { $sum: 1 },
                         },
                     },
                     {
                         $sort: {
-                            total: -1
+                            value: -1
                         }
                     },
                     { $limit: size },
-                    { $project: { _id: 0, productName: "$_id.productName", productId: "$_id.productId", total: 1 } }
+                    { $project: { _id: 0, label: "$_id.productName", value: 1 } }
 
                 ]);
                 res.send(topSale);
@@ -86,15 +86,15 @@ class StatisticController {
         // get get-revenue day-of-week or by day-of-month/month-of-year
     async getRevenue(req, res) {
             const by = req.query.by
-            let key = { $dayOfWeek: "$createdAt" }
+                // let label = { $dayOfWeek: "$createdAt" }
+            let label = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }
             let type = "week"
             switch (by) {
                 case "day-of-month":
-                    key = { $dayOfMonth: "$createdAt" }
                     type = "month"
                     break;
                 case "month-of-year":
-                    key = { $month: "$createdAt" }
+                    label = { $dateToString: { format: "%Y-%m", date: "$createdAt" } }
                     type = "year"
                     break;
             }
@@ -108,11 +108,11 @@ class StatisticController {
 
                     {
                         $group: {
-                            _id: { key: {...key } },
-                            total: { $sum: "$total" },
+                            _id: { label: {...label } },
+                            value: { $sum: "$total" },
                         },
                     },
-                    { $project: { _id: 0, key: "$_id.key", total: 1 } }
+                    { $project: { _id: 0, label: "$_id.label", value: 1 } }
 
                 ]);
                 res.send(Revenue);
