@@ -66,7 +66,7 @@ class StatisticController {
                         $group: {
                             _id: { productName: "$billDetail.name", productId: "$billDetail.productId" },
                             sales: { $sum: 1 },
-                            amount: { $sum: "$billDetail.price" }
+                            amount: { $sum: { $multiply: ["$billDetail.price", "$billDetail.qty"] } },
                         },
                     },
                     {
@@ -75,7 +75,7 @@ class StatisticController {
                         }
                     },
                     { $limit: size },
-                    { $project: { _id: 0, label: "$_id.productName", sales: 1, amount: 1 } }
+                    { $project: { _id: 0, productName: "$_id.productName", sales: 1, amount: 1 } }
 
                 ]);
                 res.send(topSale);
@@ -106,11 +106,13 @@ class StatisticController {
             try {
                 const Revenue = await Order.aggregate([
                     { $match: {...query } },
-
+                    { $unwind: "$billDetail" },
                     {
                         $group: {
                             _id: { label: {...label } },
-                            value: { $sum: "$total" },
+                            total: { $sum: { $multiply: ["$billDetail.price", "$billDetail.qty"] } },
+                            amount: { $sum: "$billDetail.qty" },
+
                         },
                     },
                     {
@@ -118,7 +120,7 @@ class StatisticController {
                             _id: 1
                         }
                     },
-                    { $project: { _id: 0, label: "$_id.label", value: 1 } }
+                    { $project: { _id: 0, label: "$_id.label", total: 1, amount: 1 } }
 
                 ]);
                 res.send(Revenue);
