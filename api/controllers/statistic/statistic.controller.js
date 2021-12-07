@@ -65,16 +65,17 @@ class StatisticController {
                     {
                         $group: {
                             _id: { productName: "$billDetail.name", productId: "$billDetail.productId" },
-                            value: { $sum: 1 },
+                            sales: { $sum: 1 },
+                            amount: { $sum: "$billDetail.price" }
                         },
                     },
                     {
                         $sort: {
-                            value: -1
+                            sales: -1
                         }
                     },
                     { $limit: size },
-                    { $project: { _id: 0, label: "$_id.productName", value: 1 } }
+                    { $project: { _id: 0, label: "$_id.productName", sales: 1, amount: 1 } }
 
                 ]);
                 res.send(topSale);
@@ -111,6 +112,11 @@ class StatisticController {
                             _id: { label: {...label } },
                             value: { $sum: "$total" },
                         },
+                    },
+                    {
+                        $sort: {
+                            _id: 1
+                        }
                     },
                     { $project: { _id: 0, label: "$_id.label", value: 1 } }
 
