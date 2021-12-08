@@ -53,12 +53,13 @@ class StatisticController {
         // [GET] /api/statistic/top-sale-product
         // get top-sale-product or by day/week/month/year
     async getTopSaleProduct(req, res) {
-            const size = req.query.size ? req.query.size : 5;
+
             const by = req.query.by
             const query = selectBy(by)
 
 
             try {
+                const size = req.query.size ? parseInt(req.query.size) : 5;
                 const topSale = await Order.aggregate([
                     { $match: {...query } },
                     { $unwind: "$billDetail" },
