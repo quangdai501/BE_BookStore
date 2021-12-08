@@ -131,9 +131,10 @@ class StatisticController {
         // [GET] /api/statistic/get-new-review
         // get-new-review 
     async getNewReviews(req, res) {
-        const size = req.query.size ? req.query.size : 10;
+
 
         try {
+            const size = req.query.size ? parseInt(req.query.size) : 10;
             const newReviews = await Review.aggregate([{
                     $lookup: {
                         from: Product.collection.name,
