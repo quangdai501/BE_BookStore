@@ -147,24 +147,24 @@ class orderController {
                     res.json({ error: 'cannot update' });
                 }
             } catch (error) {
-                console.log(error)
                 const code = error.response.data.code;
-                res.status(code).send(error.response.data)
+                res.status(code).send({ message: error.response.data })
             }
         }
     }
     // patch /api/orders/admin/cancelOrder/'+ orderID
     async orderCancel(req, res) {
-        const updateState = await Order.updateOne({ _id: req.params.orderID }, {
-            $set: {
-                deliveryStatus: "Đã hủy",
+        try {
+            const updateState = await Order.updateOne({ _id: req.params.orderID }, {
+                $set: {
+                    deliveryStatus: "Đã hủy",
+                }
+            });
+            if (updateState) {
+                res.json(updateState);
             }
-        });
-        if (updateState) {
-            res.json(updateState);
-        } else {
-            console.log('fail');
-            res.json({ error: 'cannot update' });
+        } catch (error) {
+            res.status(501).json({ message: error.message });
         }
     }
     //lấy tất cả đơn hàng [get] /api/orders
@@ -293,12 +293,12 @@ class orderController {
     // [POST] - /api/order-by-dilivery-status
     async getOrderByDeliveryStatus(req, res) {
         try {
-            const orders = await Order.find({ deliveryStatus: req.body.diliveryStatus }).populate({ path: 'user_id', model: 'user' });
+            const orders = await Order.find({ deliveryStatus: req.body.deliveryStatus }).populate({ path: 'user_id', model: 'user' });
             if (orders) {
                 res.send(orders);
             }
         } catch (error) {
-            res.send({ error: error.message });
+            res.status(501).send({ messsage: error.message });
         }
     }
 
