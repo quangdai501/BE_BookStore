@@ -44,36 +44,36 @@ class ProductController {
 
         const myAggregate = Product.aggregate(
             [{
-                    $lookup: {
-                        from: Category.collection.name,
-                        localField: 'category',
-                        foreignField: '_id',
-                        as: 'categorys',
-                    }
-                },
-                { $unwind: "$categorys" },
-                {
-                    $lookup: {
-                        from: Publisher.collection.name,
-                        localField: 'publisherId',
-                        foreignField: '_id',
-                        as: 'publisher',
-                    }
-                },
-                { $unwind: "$publisher" },
-                {
-                    $lookup: {
-                        from: Author.collection.name,
-                        localField: 'author',
-                        foreignField: '_id',
-                        as: 'authors',
-                    }
-                },
-                { $unwind: "$authors" },
-                { $match: {...category, ...author, ...query } }
+                $lookup: {
+                    from: Category.collection.name,
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'categorys',
+                }
+            },
+            { $unwind: "$categorys" },
+            {
+                $lookup: {
+                    from: Publisher.collection.name,
+                    localField: 'publisherId',
+                    foreignField: '_id',
+                    as: 'publisher',
+                }
+            },
+            { $unwind: "$publisher" },
+            {
+                $lookup: {
+                    from: Author.collection.name,
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'authors',
+                }
+            },
+            { $unwind: "$authors" },
+            { $match: { ...category, ...author, ...query } }
             ]
         );
-        Product.aggregatePaginate(myAggregate, options, function(err, results) {
+        Product.aggregatePaginate(myAggregate, options, function (err, results) {
             if (err) {
                 res.status(500).send({
                     message: err.message || "Some error occurred while retrieving products.",
@@ -102,83 +102,83 @@ class ProductController {
             // const product = await Product.findOne({ _id: productId });
             const product = await Product.aggregate(
                 [{
-                        $lookup: {
-                            from: Category.collection.name,
-                            localField: 'category',
-                            foreignField: '_id',
-                            as: 'categorys',
-                        }
-                    },
-                    { $unwind: "$categorys" },
-                    {
-                        $lookup: {
-                            from: Publisher.collection.name,
-                            localField: 'publisherId',
-                            foreignField: '_id',
-                            as: 'publisher',
-                        }
-                    },
-                    { $unwind: "$publisher" },
-                    {
-                        $lookup: {
-                            from: Author.collection.name,
-                            localField: 'author',
-                            foreignField: '_id',
-                            as: 'authors',
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: Review.collection.name,
-                            localField: '_id',
-                            foreignField: 'product',
-                            as: 'reviews',
-                        }
-                    },
-                    { $unwind: "$authors" },
-                    { $match: { _id: ObjectId(productId) } }
+                    $lookup: {
+                        from: Category.collection.name,
+                        localField: 'category',
+                        foreignField: '_id',
+                        as: 'categorys',
+                    }
+                },
+                { $unwind: "$categorys" },
+                {
+                    $lookup: {
+                        from: Publisher.collection.name,
+                        localField: 'publisherId',
+                        foreignField: '_id',
+                        as: 'publisher',
+                    }
+                },
+                { $unwind: "$publisher" },
+                {
+                    $lookup: {
+                        from: Author.collection.name,
+                        localField: 'author',
+                        foreignField: '_id',
+                        as: 'authors',
+                    }
+                },
+                {
+                    $lookup: {
+                        from: Review.collection.name,
+                        localField: '_id',
+                        foreignField: 'product',
+                        as: 'reviews',
+                    }
+                },
+                { $unwind: "$authors" },
+                { $match: { _id: ObjectId(productId) } }
                 ]
             );
 
             res.send(product[0]);
         } catch {
-            res.status(404).send({ msg: "Không tìm thấy sản phẩm!" });
+            res.status(404).send({ message: "Không tìm thấy sản phẩm!" });
         }
     }
 
     //[Post] /api/products/addProduct
     async addProduct(req, res) {
-            const product = new Product();
-            product.name = req.body.name;
-            product.category = req.body.category;
-            product.image = req.body.image;
-            product.price = req.body.price;
-            product.description = req.body.description;
-            product.author = req.body.author;
-            product.quantity = req.body.quantity;
-            product.publisherId = req.body.publisher;
-            try {
-                const saveProduct = await product.save();
-                res.send(saveProduct);
-            } catch (error) {
-                res.status(501).send({ error: error.message });
-            }
+        const product = new Product();
+        product.name = req.body.name;
+        product.category = req.body.category;
+        product.image = req.body.image;
+        product.price = req.body.price;
+        product.description = req.body.description;
+        product.author = req.body.author;
+        product.quantity = req.body.quantity;
+        product.publisherId = req.body.publisher;
+        try {
+            const saveProduct = await product.save();
+            res.send(saveProduct);
+        } catch (error) {
+            res.status(501).send({ message: error.message });
+        }
 
-        }
-        //[DELETE] /api/products/deleteProduct/:productID
+    }
+    //[DELETE] /api/products/deleteProduct/:productID
     async deleteProductByID(req, res) {
-            try {
-                const productDelete = await Product.remove({ _id: req.params.productID });
-                if (productDelete) {
-                    res.send(productDelete);
-                } else {
-                    res.send('Xóa sản phẩm lỗi');
-                }
-            } catch (error) {
-                res.send({ message: error.message });
+        try {
+            const productDelete = await Product.remove({ _id: req.params.productID });
+            if (productDelete) {
+                res.send(productDelete);
+            } else {
+                res.send('Xóa sản phẩm lỗi');
             }
+        } catch (error) {
+            res.status(501).send({ message: error.message });
         }
-        //[PATCH] api/products/updateProduct/:productID
+    }
+    //[PATCH] api/products/updateProduct/:productID
     async updateProductByID(req, res) {
         const {
             name,
@@ -204,9 +204,9 @@ class ProductController {
                 }
             });
 
-            res.send(productUpdate);
+            res.status(200).send(productUpdate);
         } catch (error) {
-            res.status(501).send({ error: error.message, message: 'Lỗi khi cập nhật thông tin sản phẩm' });
+            res.status(501).send({ message: error.message });
         }
     }
 
@@ -236,9 +236,9 @@ class ProductController {
 
             // Find the document
             const data = await Review.findOneAndUpdate(query, update, options);
-            res.send(data);
+            res.status(200).send(data);
         } catch (error) {
-            res.send({ message: error.message });
+            res.status(501).send({ message: error.message });
         }
     }
 }
