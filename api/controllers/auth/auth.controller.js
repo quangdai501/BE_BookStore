@@ -2,10 +2,25 @@ const User = require('../../models/user.model');
 const sendMail = require('../../sendEmail');
 const { getToken } = require('../../utils');
 
+// google auth
+const { OAuth2Client } = require('google-auth-library');
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID
+const client = new OAuth2Client(CLIENT_ID);
+
 function getRandomNumberBetween(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
-
+const createUserResponse = (user) => {
+    return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        address: user.address,
+        token: getToken(user),
+    }
+}
 class LoginController {
 
     // [POST] api/auth/login
@@ -16,19 +31,52 @@ class LoginController {
             password: req.body.password
         });
         if (user) {
-            res.send({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                phone: user.phone,
-                address: user.address,
-                token: getToken(user),
-            });
+            const userInfo = createUserResponse(user)
+            res.send(userInfo);
             return;
         } else {
             res.status(401).send({ message: 'Email hoặc mật khẩu không chính xác!' });
         }
+    }
+
+    // [POST] api/auth/login-google
+    async loginGoogle(req, res) {
+        let token = req.body.token;
+        try {
+            const ticket = await client.verifyIdToken({
+                idToken: token,
+                audience: CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
+            });
+            const payload = ticket.getPayload();
+            const email = payload['email']
+            const name = payload['family_name'] + ' ' + payload['given_name']
+
+            const user = await User.findOne({
+                email: email,
+            });
+            if (user) {
+                const userInfo = createUserResponse(user)
+                res.send(userInfo);
+                return;
+            } else {
+                const randPassword = Array(10).fill("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz").map(function(x) { return x[Math.floor(Math.random() * x.length)] }).join('');
+                const newUser = new User({
+                    name: name,
+                    email: email,
+                    password: randPassword
+                });
+                const saveUser = await newUser.save();
+                if (saveUser) {
+                    const userInfo = createUserResponse(saveUser)
+                    res.send(userInfo);
+                } else {
+                    res.send({ message: 'Input error!' });
+                }
+            }
+        } catch (error) {
+            res.send(error)
+        }
+
     }
 
     // [POST] - /api/auth/confirm-email
