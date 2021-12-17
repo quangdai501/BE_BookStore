@@ -68,9 +68,11 @@ class paymentController {
 
     async returnPayment(req, res) {
         try {
+            console.log(req.query);
             let vnp_Params = req.query;
             const secureHash = vnp_Params.vnp_SecureHash;
-
+            const tmnCode = process.env.VNP_TMN_CODE;
+            const secretKey = process.env.VNP_HASH_SECRET;
             delete vnp_Params.vnp_SecureHash;
             delete vnp_Params.vnp_SecureHashType;
 
