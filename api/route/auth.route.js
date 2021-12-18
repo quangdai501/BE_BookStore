@@ -13,4 +13,6 @@ router.post('/fogot-password', authController.fogotPassword);
 
 router.post('/enter-code-reset-pass', authController.enterCodeResetPass);
 
+router.patch('/reset-pass', authController.resetPassword);
+
 module.exports = router;
