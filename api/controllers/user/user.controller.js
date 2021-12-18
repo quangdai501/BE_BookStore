@@ -97,14 +97,22 @@ class UserController {
 
     // [PATCH] - /api/users/update-password
     async updatePassword(req, res) {
-        const { email, password } = req.body;
+        const id = req.user._id
+        const { newPassword, oldPassword } = req.body;
         try {
-            const userUpdated = await User.updateOne({ email }, { password });
-            if (userUpdated) {
-                res.send({ message: "Update user successfully!", data: userUpdated });
+            const user = await User.findById(id)
+
+            const currentPassword = user.password
+
+            if (oldPassword === currentPassword) {
+                user.password = newPassword
+                await user.save()
+                res.send({ message: "Đổi mật khẩu thành công" })
+            } else {
+                res.status(401).send({ message: "Mât khẩu cũ không trùng nhau" })
             }
         } catch (error) {
-            res.send({ message: error.message });
+            res.status(501).send({ message: error.message });
         }
     }
 
