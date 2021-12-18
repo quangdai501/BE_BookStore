@@ -4,41 +4,41 @@ class UserController {
 
     // [PATCH] - /api/users/update-info/:userID
     async updateUserInfo(req, res) {
-            try {
-                // const user = await User.updateOne({ _id: req.params.userID }, {
-                //     $set: {
-                //         name: req.body.name,
-                //         // email: req.body.email,
-                //         phone: req.body.phone,
-                //         address: req.body.address,
-                //     }
-                // }, { new: true });
-                // res.send(user);
-                const name = req.body.name ? { name: req.body.name } : {}
-                const phone = req.body.phone ? { phone: req.body.phone } : {}
-                const address = req.body.address ? { address: req.body.address } : {}
-                const id = req.params.userID ? req.params.userID : req.user._id
-                const
-                    update = {...name, ...phone, ...address },
-                    options = { new: true, };
-                // console.log(update)
-                // Find the document
-                const data = await User.findByIdAndUpdate(id, update, options);
-                res.send(data)
-            } catch (error) {
-                res.status(500).send({ message: error.message });
-            }
+        try {
+            // const user = await User.updateOne({ _id: req.params.userID }, {
+            //     $set: {
+            //         name: req.body.name,
+            //         // email: req.body.email,
+            //         phone: req.body.phone,
+            //         address: req.body.address,
+            //     }
+            // }, { new: true });
+            // res.send(user);
+            const name = req.body.name ? { name: req.body.name } : {}
+            const phone = req.body.phone ? { phone: req.body.phone } : {}
+            const address = req.body.address ? { address: req.body.address } : {}
+            const id = req.params.userID ? req.params.userID : req.user._id
+            const
+                update = { ...name, ...phone, ...address },
+                options = { new: true, };
+            // console.log(update)
+            // Find the document
+            const data = await User.findByIdAndUpdate(id, update, options);
+            res.send(data)
+        } catch (error) {
+            res.status(500).send({ message: error.message });
         }
-        // [GET] - /api/users/getuser-info/
+    }
+    // [GET] - /api/users/getuser-info/
     async getUserInfoByID(req, res) {
-            try {
-                const user = await User.findById({ _id: req.user._id });
-                res.send(user);
-            } catch (error) {
-                res.status(404).send({ message: error.message });
-            }
+        try {
+            const user = await User.findById({ _id: req.user._id });
+            res.send(user);
+        } catch (error) {
+            res.status(404).send({ message: error.message });
         }
-        // [GET] - /api/users
+    }
+    // [GET] - /api/users
     async getAllUsers(req, res) {
 
         try {
@@ -97,14 +97,19 @@ class UserController {
 
     // [PATCH] - /api/users/update-password
     async updatePassword(req, res) {
-        const { email, password } = req.body;
+        const { email, oldPassword, newPassword } = req.body;
         try {
-            const userUpdated = await User.updateOne({ email }, { password });
-            if (userUpdated) {
-                res.send({ message: "Update user successfully!", data: userUpdated });
+            const user = await User.findOne({ email: email })
+            if (user.password !== oldPassword) {
+                res.status(501).send({ message: "Mật khẩu cũ không đúng" })
+            } else {
+                const userUpdated = await User.updateOne({ email }, { password: newPassword });
+                if (userUpdated) {
+                    res.status(200).send({ message: "Update user successfully!", data: userUpdated });
+                }
             }
         } catch (error) {
-            res.send({ message: error.message });
+            res.status(501).send({ message: error.message });
         }
     }
 

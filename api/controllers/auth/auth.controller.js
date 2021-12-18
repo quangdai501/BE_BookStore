@@ -59,7 +59,7 @@ class LoginController {
                 res.send(userInfo);
                 return;
             } else {
-                const randPassword = Array(10).fill("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz").map(function(x) { return x[Math.floor(Math.random() * x.length)] }).join('');
+                const randPassword = Array(10).fill("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz").map(function (x) { return x[Math.floor(Math.random() * x.length)] }).join('');
                 const newUser = new User({
                     name: name,
                     email: email,
@@ -95,7 +95,7 @@ class LoginController {
                 const code = getRandomNumberBetween(100000, 999999);
                 global.code = code;
                 const html = `<p>Mã xác thực của bạn là: <b>${code}</b></p>`;
-                sendMail(email, 'NS3AE - Đăng ký tài khoản', html);
+                sendMail(email, 'BOOSTOREUTE - Đăng ký tài khoản', html);
                 res.send({ message: "Send email successfully!", success: true, data: user });
             }
         } catch (error) {
@@ -109,17 +109,17 @@ class LoginController {
         try {
             const user = await User.findOne({ email });
             if (user) {
-                const subject = 'NS3AE - Đặt lại mật khẩu';
+                const subject = 'BOOSTOREUTE - Đặt lại mật khẩu';
                 const code = getRandomNumberBetween(100000, 999999);
                 global.codeResetPass = code;
                 global.email = email;
                 const content = `
           <p>Xin chào ${user.name},</p>
-          <p>NS3AE đã nhận được yêu cầu đổi mật khẩu của bạn. 
+          <p>BOOSTOREUTE đã nhận được yêu cầu đổi mật khẩu của bạn. 
               Đây là mã kích hoạt để đổi mật khẩu: <b>${code}</b></p>
           <p>Nếu bạn không yêu cầu đổi mật khẩu thì hãy bỏ qua email này để tài khoản được bảo mật nhé!</p>
           <p>Trân trọng,</p>
-          <p>NS3AE</p>`;
+          <p>BOOSTOREUTE</p>`;
                 sendMail(email, subject, content);
                 res.send({ status: 'SENT_EMAIL', email, name: user.name });
             } else {
@@ -137,7 +137,7 @@ class LoginController {
             const user = await User.findOne({ email: global.email });
             if (user) {
                 if (parseInt(code) === global.codeResetPass) {
-                    res.send({ status: 'CODE_MATCHED' });
+                    res.status(200).send({ status: 'CODE_MATCHED' });
                 } else {
                     res.status(401).send({ message: 'Mã code không đúng!' });
                 }
@@ -148,6 +148,19 @@ class LoginController {
             res.send({ message: error.message });
         }
     }
+    // [POST] - /api/auth/reset-pass
+    async resetPassword(req, res) {
+        const { email, password } = req.body;
+        try {
+            const updateOne = await User.updateOne({ email }, { password });
+            if (updateOne) {
+                res.status(200).send({ message: "Cập nhật thành công" });
+            }
+        } catch (error) {
+            res.status(501).send({ message: error.message });
+        }
+    }
+
 }
 
 module.exports = new LoginController;
