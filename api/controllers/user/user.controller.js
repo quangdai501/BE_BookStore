@@ -107,7 +107,7 @@ class UserController {
             if (oldPassword === currentPassword) {
                 user.password = newPassword
                 await user.save()
-                res.send({ update: true })
+                res.send({ message: "Đổi mật khẩu thành công" })
             } else {
                 res.status(401).send({ message: "Mât khẩu cũ không trùng nhau" })
             }
