@@ -15,83 +15,108 @@ class ProductController {
     // [GET] /api/products
     // get all or by author, category, search
     async getAllProduct(req, res) {
-        const page = req.query.page;
-        const size = req.query.size;
-        const author = req.query.author ? {
-            // author: ObjectId(req.query.author)
-            "authors.name": { $regex: new RegExp(req.query.author, 'i') }
-        } : {};
-        const category = req.query.category ? {
-            // category: ObjectId(req.query.category)
-            "categorys.name": { $regex: new RegExp(req.query.category, 'i') }
-        } : {};
-        const search = req.query.search
-        const query = (search) ? {
-            $or: [
-                { name: { $regex: new RegExp(search, 'i') } },
-                { "categorys.name": { $regex: new RegExp(search, 'i') } },
-                { "authors.name": { $regex: new RegExp(search, 'i') } },
-            ]
-        } : {}
+            const page = req.query.page;
+            const size = req.query.size;
+            const author = req.query.author ? {
+                // author: ObjectId(req.query.author)
+                "authors.name": { $regex: new RegExp(req.query.author, 'i') }
+            } : {};
+            const category = req.query.category ? {
+                // category: ObjectId(req.query.category)
+                "categorys.name": { $regex: new RegExp(req.query.category, 'i') }
+            } : {};
+            const search = req.query.search
+            const query = (search) ? {
+                $or: [
+                    { name: { $regex: new RegExp(search, 'i') } },
+                    { "categorys.name": { $regex: new RegExp(search, 'i') } },
+                    { "authors.name": { $regex: new RegExp(search, 'i') } },
+                ]
+            } : {}
 
-        const sort = req.query.sort ? { sort: req.query.sort } : {}
-        const { limit, offset } = getPagination(page, size);
-        const options = {
-            page: offset,
-            limit: limit,
-            ...sort
-        };
+            const sort = req.query.sort ? { sort: req.query.sort } : {}
+            const { limit, offset } = getPagination(page, size);
+            const options = {
+                page: offset,
+                limit: limit,
+                ...sort
+            };
 
-        const myAggregate = Product.aggregate(
-            [{
-                $lookup: {
-                    from: Category.collection.name,
-                    localField: 'category',
-                    foreignField: '_id',
-                    as: 'categorys',
+            const myAggregate = Product.aggregate(
+                [{
+                        $lookup: {
+                            from: Category.collection.name,
+                            localField: 'category',
+                            foreignField: '_id',
+                            as: 'categorys',
+                        }
+                    },
+                    { $unwind: "$categorys" },
+                    {
+                        $lookup: {
+                            from: Publisher.collection.name,
+                            localField: 'publisherId',
+                            foreignField: '_id',
+                            as: 'publisher',
+                        }
+                    },
+                    { $unwind: "$publisher" },
+                    {
+                        $lookup: {
+                            from: Author.collection.name,
+                            localField: 'author',
+                            foreignField: '_id',
+                            as: 'authors',
+                        }
+                    },
+                    { $unwind: "$authors" },
+                    { $match: {...category, ...author, ...query } }
+                ]
+            );
+            Product.aggregatePaginate(myAggregate, options, function(err, results) {
+                if (err) {
+                    res.status(500).send({
+                        message: err.message || "Some error occurred while retrieving products.",
+                    });
+                } else {
+
+                    res.send({
+                        totalItems: results.totalDocs,
+                        product: results.docs,
+                        totalPages: results.totalPages,
+                        currentpage: results.page,
+                        searchKey: req.query.search,
+
+                    })
                 }
-            },
-            { $unwind: "$categorys" },
-            {
-                $lookup: {
-                    from: Publisher.collection.name,
-                    localField: 'publisherId',
-                    foreignField: '_id',
-                    as: 'publisher',
-                }
-            },
-            { $unwind: "$publisher" },
-            {
-                $lookup: {
-                    from: Author.collection.name,
-                    localField: 'author',
-                    foreignField: '_id',
-                    as: 'authors',
-                }
-            },
-            { $unwind: "$authors" },
-            { $match: { ...category, ...author, ...query } }
-            ]
-        );
-        Product.aggregatePaginate(myAggregate, options, function (err, results) {
-            if (err) {
-                res.status(500).send({
-                    message: err.message || "Some error occurred while retrieving products.",
-                });
+            })
+
+
+
+        }
+        // [GET] /api/products/:id/recommend
+        // get product same authorId,category publisher
+    async getRecommendProducts(req, res) {
+        const size = req.query.size ? req.query.size : 6;
+        const id = req.params.id;
+
+        try {
+            const product = await Product.findById(id);
+            if (product) {
+                const products = await Product.find({
+                    $or: [
+                        { author: product.author },
+                        { publisherId: product.publisherId },
+                        { category: product.category },
+                    ]
+                }).limit(size);
+                res.send(products);
             } else {
-
-                res.send({
-                    totalItems: results.totalDocs,
-                    product: results.docs,
-                    totalPages: results.totalPages,
-                    currentpage: results.page,
-                    searchKey: req.query.search,
-
-                })
+                res.status(404).send({ message: "Không tìm thấy sản phẩm!" });
             }
-        })
-
-
+        } catch (ex) {
+            res.status(500).send({ message: ex.message });
+        }
 
     }
 
@@ -102,41 +127,41 @@ class ProductController {
             // const product = await Product.findOne({ _id: productId });
             const product = await Product.aggregate(
                 [{
-                    $lookup: {
-                        from: Category.collection.name,
-                        localField: 'category',
-                        foreignField: '_id',
-                        as: 'categorys',
-                    }
-                },
-                { $unwind: "$categorys" },
-                {
-                    $lookup: {
-                        from: Publisher.collection.name,
-                        localField: 'publisherId',
-                        foreignField: '_id',
-                        as: 'publisher',
-                    }
-                },
-                { $unwind: "$publisher" },
-                {
-                    $lookup: {
-                        from: Author.collection.name,
-                        localField: 'author',
-                        foreignField: '_id',
-                        as: 'authors',
-                    }
-                },
-                {
-                    $lookup: {
-                        from: Review.collection.name,
-                        localField: '_id',
-                        foreignField: 'product',
-                        as: 'reviews',
-                    }
-                },
-                { $unwind: "$authors" },
-                { $match: { _id: ObjectId(productId) } }
+                        $lookup: {
+                            from: Category.collection.name,
+                            localField: 'category',
+                            foreignField: '_id',
+                            as: 'categorys',
+                        }
+                    },
+                    { $unwind: "$categorys" },
+                    {
+                        $lookup: {
+                            from: Publisher.collection.name,
+                            localField: 'publisherId',
+                            foreignField: '_id',
+                            as: 'publisher',
+                        }
+                    },
+                    { $unwind: "$publisher" },
+                    {
+                        $lookup: {
+                            from: Author.collection.name,
+                            localField: 'author',
+                            foreignField: '_id',
+                            as: 'authors',
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: Review.collection.name,
+                            localField: '_id',
+                            foreignField: 'product',
+                            as: 'reviews',
+                        }
+                    },
+                    { $unwind: "$authors" },
+                    { $match: { _id: ObjectId(productId) } }
                 ]
             );
 
@@ -148,37 +173,37 @@ class ProductController {
 
     //[Post] /api/products/addProduct
     async addProduct(req, res) {
-        const product = new Product();
-        product.name = req.body.name;
-        product.category = req.body.category;
-        product.image = req.body.image;
-        product.price = req.body.price;
-        product.description = req.body.description;
-        product.author = req.body.author;
-        product.quantity = req.body.quantity;
-        product.publisherId = req.body.publisher;
-        try {
-            const saveProduct = await product.save();
-            res.send(saveProduct);
-        } catch (error) {
-            res.status(501).send({ message: error.message });
-        }
-
-    }
-    //[DELETE] /api/products/deleteProduct/:productID
-    async deleteProductByID(req, res) {
-        try {
-            const productDelete = await Product.remove({ _id: req.params.productID });
-            if (productDelete) {
-                res.send(productDelete);
-            } else {
-                res.send('Xóa sản phẩm lỗi');
+            const product = new Product();
+            product.name = req.body.name;
+            product.category = req.body.category;
+            product.image = req.body.image;
+            product.price = req.body.price;
+            product.description = req.body.description;
+            product.author = req.body.author;
+            product.quantity = req.body.quantity;
+            product.publisherId = req.body.publisher;
+            try {
+                const saveProduct = await product.save();
+                res.send(saveProduct);
+            } catch (error) {
+                res.status(501).send({ message: error.message });
             }
-        } catch (error) {
-            res.status(501).send({ message: error.message });
+
         }
-    }
-    //[PATCH] api/products/updateProduct/:productID
+        //[DELETE] /api/products/deleteProduct/:productID
+    async deleteProductByID(req, res) {
+            try {
+                const productDelete = await Product.remove({ _id: req.params.productID });
+                if (productDelete) {
+                    res.send(productDelete);
+                } else {
+                    res.send('Xóa sản phẩm lỗi');
+                }
+            } catch (error) {
+                res.status(501).send({ message: error.message });
+            }
+        }
+        //[PATCH] api/products/updateProduct/:productID
     async updateProductByID(req, res) {
         const {
             name,

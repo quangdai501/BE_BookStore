@@ -7,6 +7,8 @@ const { isAuth, isAdmin } = require('../utils');
 router.get('/', productController.getAllProduct);
 // Get special product
 router.get('/:id', productController.getProductById);
+// Get recommend products
+router.get('/:id/recommend', productController.getRecommendProducts);
 
 // add a product
 router.post('/addProduct', isAuth, isAdmin, productController.addProduct);
