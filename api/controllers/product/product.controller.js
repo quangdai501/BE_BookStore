@@ -103,14 +103,60 @@ class ProductController {
         try {
             const product = await Product.findById(id);
             if (product) {
-                const products = await Product.find({
-                    $or: [
-                        { author: product.author },
-                        { publisherId: product.publisherId },
-                        { category: product.category },
+
+                const products = await Product.aggregate(
+                    [{
+
+                            $lookup: {
+                                from: Category.collection.name,
+                                localField: 'category',
+                                foreignField: '_id',
+                                as: 'categorys',
+                            }
+                        },
+                        { $unwind: "$categorys" },
+                        {
+                            $lookup: {
+                                from: Publisher.collection.name,
+                                localField: 'publisherId',
+                                foreignField: '_id',
+                                as: 'publisher',
+                            }
+                        },
+                        { $unwind: "$publisher" },
+                        {
+                            $lookup: {
+                                from: Author.collection.name,
+                                localField: 'author',
+                                foreignField: '_id',
+                                as: 'authors',
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: Review.collection.name,
+                                localField: '_id',
+                                foreignField: 'product',
+                                as: 'reviews',
+                            }
+                        },
+                        { $unwind: "$authors" },
+                        {
+                            $match: {
+
+                                $or: [
+                                    { author: product.author },
+                                    { publisherId: product.publisherId },
+                                    { category: product.category },
+                                ],
+
+                            }
+                        }, { $limit: size }
                     ]
-                }).limit(size);
+                );
+
                 res.send(products);
+
             } else {
                 res.status(404).send({ message: "Không tìm thấy sản phẩm!" });
             }
