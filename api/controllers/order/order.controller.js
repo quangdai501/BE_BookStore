@@ -1,6 +1,51 @@
 const Order = require('../../models/bill.model');
+const Product = require('../../models/product.model')
 const sendMail = require('../../sendEmail');
 const axios = require('axios');
+const mongoose = require('mongoose');
+
+const getAllProductInBills = async(billDetails) => {
+    try {
+        const productIds = billDetails.map(item => item.productId);
+
+        const products = await Product.find({ _id: { $in: productIds } })
+        return products
+    } catch (error) {
+        throw "Không tìm thấy sản phẩm"
+    }
+
+}
+
+const isValidBillDetail = (billDetails, products) => {
+    try {
+        if (products.length != billDetails.length) {
+            throw "Đơn hàng không hợp lệ"
+        }
+        for (let i = 0; i < products.length; i++) {
+            if (!products[i].isActive || products[i].quantity < billDetails.qty) {
+                throw "Đơn hàng không hợp lệ"
+            }
+        }
+
+        return true
+    } catch (error) {
+        throw "Đơn hàng không hợp lệ"
+    }
+
+}
+const updateProductAfterOrder = async(billDetails, products) => {
+    try {
+        for (let i = 0; i < products.length; i++) {
+            products[i].isDelete = false;
+            products[i].quantity = products[i].quantity - billDetails[i].qty;
+            await products[i].save()
+        }
+        return true
+    } catch (error) {
+        throw "Không thể cập nhật sản phẩm"
+    }
+
+}
 
 
 class orderController {
@@ -56,12 +101,28 @@ class orderController {
                 bill.paidAt = date;
             }
             try {
-                const addToCart = await bill.save();
-                if (addToCart) {
-                    res.send(addToCart);
-                } else {
-                    res.send('Tạo đơn hàng không thành công');
-                }
+                const session = await mongoose.startSession();
+
+
+                await session.withTransaction(async() => {
+                    const products = await getAllProductInBills(req.body.billDetail);
+
+                    const isValidBillDetails = isValidBillDetail(req.body.billDetail, products);
+
+                    if (isValidBillDetails) {
+                        await updateProductAfterOrder(req.body.billDetail, products);
+                    }
+
+                    const addToCart = await bill.save();
+                    if (addToCart) {
+                        res.send(addToCart);
+                    } else {
+                        res.send('Tạo đơn hàng không thành công');
+                    }
+                });
+
+
+                session.endSession();
             } catch (error) {
                 console.log(error)
                 res.status(500).send({ err: error.message })

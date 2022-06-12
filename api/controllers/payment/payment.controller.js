@@ -1,10 +1,55 @@
 const Order = require('../../models/bill.model');
+const Product = require('../../models/product.model')
 const querystring = require("qs");
 const sha256 = require("sha256");
 const dateFormat = require("dateformat");
 const crypto = require("crypto");
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 dotenv.config();
+
+const getAllProductInBills = async(billDetails) => {
+    try {
+        const productIds = billDetails.map(item => item.productId);
+
+        const products = await Product.find({ _id: { $in: productIds } })
+        return products
+    } catch (error) {
+        throw "Không tìm thấy sản phẩm"
+    }
+
+}
+
+const isValidBillDetail = (billDetails, products) => {
+    try {
+        if (products.length != billDetails.length) {
+            throw "Đơn hàng không hợp lệ"
+        }
+        for (let i = 0; i < products.length; i++) {
+            if (!products[i].isActive || products[i].quantity < billDetails.qty) {
+                throw "Đơn hàng không hợp lệ"
+            }
+        }
+
+        return true
+    } catch (error) {
+        throw "Đơn hàng không hợp lệ"
+    }
+
+}
+const updateProductAfterOrder = async(billDetails, products) => {
+    try {
+        for (let i = 0; i < products.length; i++) {
+            products[i].isDelete = false;
+            products[i].quantity = products[i].quantity - billDetails[i].qty;
+            await products[i].save()
+        }
+        return true
+    } catch (error) {
+        throw "Không thể cập nhật sản phẩm"
+    }
+
+}
 
 class paymentController {
     async createPayment(req, res) {
@@ -29,41 +74,64 @@ class paymentController {
         bill.deliveredStatus = req.body.diliveryStatus;
         const date = new Date();
         bill.paidAt = date;
-        const order = await bill.save();
+
+        try {
+
+            const session = await mongoose.startSession();
 
 
-        let vnpUrl = url;
+            await session.withTransaction(async() => {
+                const products = await getAllProductInBills(req.body.billDetail);
 
-        const createDate = dateFormat(date, "yyyymmddHHmmss");
-        const orderId = order._id.toString();
+                const isValidBillDetails = isValidBillDetail(req.body.billDetail, products);
 
-        var locale = "vn";
-        var currCode = "VND";
-        var vnp_Params = {};
-        vnp_Params["vnp_Version"] = "2.1.0";
-        vnp_Params["vnp_Command"] = "pay";
-        vnp_Params["vnp_TmnCode"] = tmnCode;
+                if (isValidBillDetails) {
+                    await updateProductAfterOrder(req.body.billDetail, products);
+                }
+                console.log(products);
 
-        vnp_Params["vnp_Locale"] = locale;
-        vnp_Params["vnp_CurrCode"] = currCode;
-        vnp_Params["vnp_TxnRef"] = orderId;
-        vnp_Params["vnp_OrderInfo"] = "thanh toan hoa don";
-        vnp_Params["vnp_OrderType"] = "billpayment";
-        vnp_Params["vnp_Amount"] = Number(req.body.total * 100);
-        vnp_Params["vnp_ReturnUrl"] = returnUrl;
-        vnp_Params["vnp_IpAddr"] = ipAddr;
-        vnp_Params["vnp_CreateDate"] = createDate;
-        vnp_Params["vnp_BankCode"] = "NCB";
+                const order = await bill.save();
+                let vnpUrl = url;
 
-        vnp_Params = sortObject(vnp_Params);
+                const createDate = dateFormat(date, "yyyymmddHHmmss");
+                const orderId = order._id.toString();
 
-        const signData = querystring.stringify(vnp_Params, { encode: false });
-        const hmac = crypto.createHmac("sha512", secretKey);
-        const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
-        vnp_Params['vnp_SecureHash'] = signed;
-        vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
+                var locale = "vn";
+                var currCode = "VND";
+                var vnp_Params = {};
+                vnp_Params["vnp_Version"] = "2.1.0";
+                vnp_Params["vnp_Command"] = "pay";
+                vnp_Params["vnp_TmnCode"] = tmnCode;
 
-        res.status(200).json({ code: "00", data: vnpUrl });
+                vnp_Params["vnp_Locale"] = locale;
+                vnp_Params["vnp_CurrCode"] = currCode;
+                vnp_Params["vnp_TxnRef"] = orderId;
+                vnp_Params["vnp_OrderInfo"] = "thanh toan hoa don";
+                vnp_Params["vnp_OrderType"] = "billpayment";
+                vnp_Params["vnp_Amount"] = Number(req.body.total * 100);
+                vnp_Params["vnp_ReturnUrl"] = returnUrl;
+                vnp_Params["vnp_IpAddr"] = ipAddr;
+                vnp_Params["vnp_CreateDate"] = createDate;
+                vnp_Params["vnp_BankCode"] = "NCB";
+
+                vnp_Params = sortObject(vnp_Params);
+
+                const signData = querystring.stringify(vnp_Params, { encode: false });
+                const hmac = crypto.createHmac("sha512", secretKey);
+                const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
+                vnp_Params['vnp_SecureHash'] = signed;
+                vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
+
+                res.status(200).json({ code: "00", data: vnpUrl });
+            });
+            session.endSession();
+
+        } catch (error) {
+            console.log(error)
+            res.status(500).send({ err: error.message })
+        }
+
+
     };
 
     async returnPayment(req, res) {
@@ -140,6 +208,7 @@ class paymentController {
     };
 
 }
+
 function sortObject(obj) {
     var sorted = {};
     var str = [];
