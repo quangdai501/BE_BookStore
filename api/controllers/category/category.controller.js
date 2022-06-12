@@ -62,6 +62,13 @@ class CategoryController {
     async deleteCategory(req, res) {
         try {
             const categoryId = req.params.id;
+            const category = await Category.findOne({ isDelete: true, _id: categoryId })
+
+            if (!category) {
+                res.status(500).send({ error: "Category can not delete" });
+                return;
+            }
+
             const deleteCategory = await Category.deleteOne({ _id: categoryId });
             res.send(deleteCategory);
         } catch (error) {

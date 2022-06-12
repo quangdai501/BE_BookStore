@@ -62,6 +62,13 @@ class PublisherController {
     async deletePublisher(req, res) {
         try {
             const publisherId = req.params.id;
+            const publisher = await Publisher.findOne({ isDelete: true, _id: publisherId })
+
+            if (!publisher) {
+                res.status(500).send({ error: "Publisher can not delete" });
+                return;
+            }
+
             const deletePublisher = await Publisher.deleteOne({ _id: publisherId });
             res.send(deletePublisher);
         } catch (error) {

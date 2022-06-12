@@ -4,6 +4,10 @@ const AuthorSchema = new Schema({
     name: {
         type: String,
         required: true,
+    },
+    isDelete: {
+        type: Boolean,
+        default: true
     }
 }, {
     timestamps: true

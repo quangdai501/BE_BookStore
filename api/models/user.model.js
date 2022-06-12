@@ -26,6 +26,14 @@ const UserSchema = new Schema({
         type: String,
         required: true,
         default: 'user'
+    },
+    isDelete: {
+        type: Boolean,
+        default: false
+    },
+    isActive: {
+        type: Boolean,
+        default: true
     }
 })
 
