@@ -5,6 +5,7 @@ const Author = require('../../models/author.model');
 const Review = require('../../models/review.model');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+
 const getPagination = (page, size) => {
     const limit = size ? size : 12;
     const offset = page ? page : 1;
@@ -294,7 +295,8 @@ class ProductController {
             description,
             author,
             quantity,
-            publisher
+            publisher,
+            isActive
         } = req.body;
         try {
             const productUpdate = await Product.updateOne({ _id: req.params.productID }, {
@@ -306,7 +308,8 @@ class ProductController {
                     description: description,
                     author: author,
                     quantity: quantity,
-                    publisherId: publisher
+                    publisherId: publisher,
+                    isActive: isActive ? isActive : true
                 }
             });
 
