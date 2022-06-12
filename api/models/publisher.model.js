@@ -5,6 +5,10 @@ const PublisherSchema = new Schema({
         type: String,
         required: true,
         unique: true
+    },
+    isDelete: {
+        type: Boolean,
+        default: true
     }
 }, {
     timestamps: true

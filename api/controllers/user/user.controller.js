@@ -4,41 +4,41 @@ class UserController {
 
     // [PATCH] - /api/users/update-info/:userID
     async updateUserInfo(req, res) {
-        try {
-            // const user = await User.updateOne({ _id: req.params.userID }, {
-            //     $set: {
-            //         name: req.body.name,
-            //         // email: req.body.email,
-            //         phone: req.body.phone,
-            //         address: req.body.address,
-            //     }
-            // }, { new: true });
-            // res.send(user);
-            const name = req.body.name ? { name: req.body.name } : {}
-            const phone = req.body.phone ? { phone: req.body.phone } : {}
-            const address = req.body.address ? { address: req.body.address } : {}
-            const id = req.params.userID ? req.params.userID : req.user._id
-            const
-                update = { ...name, ...phone, ...address },
-                options = { new: true, };
-            // console.log(update)
-            // Find the document
-            const data = await User.findByIdAndUpdate(id, update, options);
-            res.send(data)
-        } catch (error) {
-            res.status(500).send({ message: error.message });
+            try {
+                // const user = await User.updateOne({ _id: req.params.userID }, {
+                //     $set: {
+                //         name: req.body.name,
+                //         // email: req.body.email,
+                //         phone: req.body.phone,
+                //         address: req.body.address,
+                //     }
+                // }, { new: true });
+                // res.send(user);
+                const name = req.body.name ? { name: req.body.name } : {}
+                const phone = req.body.phone ? { phone: req.body.phone } : {}
+                const address = req.body.address ? { address: req.body.address } : {}
+                const id = req.params.userID ? req.params.userID : req.user._id
+                const
+                    update = {...name, ...phone, ...address },
+                    options = { new: true, };
+                // console.log(update)
+                // Find the document
+                const data = await User.findByIdAndUpdate(id, update, options);
+                res.send(data)
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
         }
-    }
-    // [GET] - /api/users/getuser-info/
+        // [GET] - /api/users/getuser-info/
     async getUserInfoByID(req, res) {
-        try {
-            const user = await User.findById({ _id: req.user._id });
-            res.send(user);
-        } catch (error) {
-            res.status(404).send({ message: error.message });
+            try {
+                const user = await User.findById({ _id: req.user._id });
+                res.send(user);
+            } catch (error) {
+                res.status(404).send({ message: error.message });
+            }
         }
-    }
-    // [GET] - /api/users
+        // [GET] - /api/users
     async getAllUsers(req, res) {
 
         try {
@@ -117,8 +117,20 @@ class UserController {
     async deleteUser(req, res) {
         try {
             const userId = req.params.id;
-            const deletedUser = await User.deleteOne({ _id: userId });
-            res.send(deletedUser);
+
+            const activeUser = await User.findById(userId)
+
+            if (!activeUser) {
+                res.status(404).send({ msg: `User ${userId} not found` });
+            }
+
+            const isActive = activeUser.isActive;
+
+            activeUser.isActive = !isActive
+
+            await activeUser.save()
+
+            res.send({ message: "Change active successfully" });
         } catch (error) {
             res.send({ msg: error.message });
         }

@@ -61,9 +61,17 @@ class AuthorController {
     // [DELETE] - /api/Author/:id
     async deleteAuthor(req, res) {
         try {
-            const AuthorId = req.params.id;
-            const deleteAuthor = await Author.deleteOne({ _id: AuthorId });
+            const authorId = req.params.id;
+            const author = await Author.findOne({ isDelete: true, _id: authorId })
+
+            if (!author) {
+                res.status(500).send({ error: "Author can not delete" });
+                return;
+            }
+
+            const deleteAuthor = await Author.deleteOne({ _id: authorId });
             res.send(deleteAuthor);
+
         } catch (error) {
             res.send({ msg: error.message });
         }

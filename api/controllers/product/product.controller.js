@@ -5,6 +5,7 @@ const Author = require('../../models/author.model');
 const Review = require('../../models/review.model');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+
 const getPagination = (page, size) => {
     const limit = size ? size : 12;
     const offset = page ? page : 1;
@@ -229,6 +230,32 @@ class ProductController {
             product.quantity = req.body.quantity;
             product.publisherId = req.body.publisher;
             try {
+
+                const author = await Author.findById(req.body.author);
+                const category = await Category.findById(req.body.category);
+                const publisher = await Publisher.findById(req.body.publisher);
+
+                if (!author || !category || !publisher) {
+                    res.status(404).send({ message: "Author or Category or publisher was not found" });
+                }
+
+
+                if (author.isDelete) {
+                    author.isDelete = false;
+                    await author.save()
+                }
+
+                if (category.isDelete) {
+                    category.isDelete = false;
+                    await category.save()
+                }
+
+                if (publisher.isDelete) {
+                    publisher.isDelete = false;
+                    await publisher.save();
+                }
+
+
                 const saveProduct = await product.save();
                 res.send(saveProduct);
             } catch (error) {
@@ -239,7 +266,16 @@ class ProductController {
         //[DELETE] /api/products/deleteProduct/:productID
     async deleteProductByID(req, res) {
             try {
-                const productDelete = await Product.remove({ _id: req.params.productID });
+                const productId = req.params.productID
+
+                const product = await Product.findOne({ isDelete: true, _id: productId })
+
+                if (!product) {
+                    res.status(500).send({ error: "Product can not delete" });
+                    return;
+                }
+
+                const productDelete = await Product.remove({ _id: productId });
                 if (productDelete) {
                     res.send(productDelete);
                 } else {
@@ -259,7 +295,8 @@ class ProductController {
             description,
             author,
             quantity,
-            publisher
+            publisher,
+            isActive
         } = req.body;
         try {
             const productUpdate = await Product.updateOne({ _id: req.params.productID }, {
@@ -271,7 +308,8 @@ class ProductController {
                     description: description,
                     author: author,
                     quantity: quantity,
-                    publisherId: publisher
+                    publisherId: publisher,
+                    isActive: isActive ? isActive : true
                 }
             });
 
