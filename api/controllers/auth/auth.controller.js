@@ -31,6 +31,10 @@ class LoginController {
             password: req.body.password
         });
         if (user) {
+            if (!user.isActive) {
+                res.status(401).send({ message: 'Tài khoản của bạn đang bị cấm truy cập' });
+                return
+            }
             const userInfo = createUserResponse(user)
             res.send(userInfo);
             return;
@@ -59,7 +63,7 @@ class LoginController {
                 res.send(userInfo);
                 return;
             } else {
-                const randPassword = Array(10).fill("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz").map(function (x) { return x[Math.floor(Math.random() * x.length)] }).join('');
+                const randPassword = Array(10).fill("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz").map(function(x) { return x[Math.floor(Math.random() * x.length)] }).join('');
                 const newUser = new User({
                     name: name,
                     email: email,
@@ -132,23 +136,23 @@ class LoginController {
 
     // [POST] - /api/auth/enter-code-reset-pass
     async enterCodeResetPass(req, res) {
-        const { code } = req.body;
-        try {
-            const user = await User.findOne({ email: global.email });
-            if (user) {
-                if (parseInt(code) === global.codeResetPass) {
-                    res.status(200).send({ status: 'CODE_MATCHED' });
+            const { code } = req.body;
+            try {
+                const user = await User.findOne({ email: global.email });
+                if (user) {
+                    if (parseInt(code) === global.codeResetPass) {
+                        res.status(200).send({ status: 'CODE_MATCHED' });
+                    } else {
+                        res.status(401).send({ message: 'Mã code không đúng!' });
+                    }
                 } else {
-                    res.status(401).send({ message: 'Mã code không đúng!' });
+                    res.status(401).send({ message: 'Đã xảy ra lỗi!' });
                 }
-            } else {
-                res.status(401).send({ message: 'Đã xảy ra lỗi!' });
+            } catch (error) {
+                res.send({ message: error.message });
             }
-        } catch (error) {
-            res.send({ message: error.message });
         }
-    }
-    // [POST] - /api/auth/reset-pass
+        // [POST] - /api/auth/reset-pass
     async resetPassword(req, res) {
         const { email, password } = req.body;
         try {

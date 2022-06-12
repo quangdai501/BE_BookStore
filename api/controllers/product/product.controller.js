@@ -71,7 +71,7 @@ class ProductController {
                         }
                     },
                     { $unwind: "$authors" },
-                    { $match: {...category, ...author, ...query } }
+                    { $match: {...category, ...author, ...query, isActive: true } }
                 ]
             );
             Product.aggregatePaginate(myAggregate, options, function(err, results) {
@@ -150,6 +150,7 @@ class ProductController {
                                     { publisherId: product.publisherId },
                                     { category: product.category },
                                 ],
+                                isActive: true
 
                             }
                         }, { $limit: size }
@@ -208,7 +209,7 @@ class ProductController {
                         }
                     },
                     { $unwind: "$authors" },
-                    { $match: { _id: ObjectId(productId) } }
+                    { $match: { _id: ObjectId(productId), isActive: true } }
                 ]
             );
 
