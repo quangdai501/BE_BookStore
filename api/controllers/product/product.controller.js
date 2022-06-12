@@ -35,6 +35,8 @@ class ProductController {
                 ]
             } : {}
 
+            const isActive = req.query.active ? {} : { isActive: true }
+
             const sort = req.query.sort ? { sort: req.query.sort } : {}
             const { limit, offset } = getPagination(page, size);
             const options = {
@@ -42,6 +44,7 @@ class ProductController {
                 limit: limit,
                 ...sort
             };
+
 
             const myAggregate = Product.aggregate(
                 [{
@@ -71,7 +74,7 @@ class ProductController {
                         }
                     },
                     { $unwind: "$authors" },
-                    { $match: {...category, ...author, ...query, isActive: true } }
+                    { $match: {...category, ...author, ...query, ...isActive } }
                 ]
             );
             Product.aggregatePaginate(myAggregate, options, function(err, results) {
@@ -209,7 +212,7 @@ class ProductController {
                         }
                     },
                     { $unwind: "$authors" },
-                    { $match: { _id: ObjectId(productId), isActive: true } }
+                    { $match: { _id: ObjectId(productId) } }
                 ]
             );
 
@@ -310,7 +313,7 @@ class ProductController {
                     author: author,
                     quantity: quantity,
                     publisherId: publisher,
-                    isActive: isActive ? isActive : true
+                    isActive: isActive
                 }
             });
 
