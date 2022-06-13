@@ -9,6 +9,8 @@ router.get('/', productController.getAllProduct);
 router.get('/:id', productController.getProductById);
 // Get recommend products
 router.get('/:id/recommend', productController.getRecommendProducts);
+//get all review by product id
+router.get('/:id/reviews', productController.getAllReviewById);
 
 // add a product
 router.post('/addProduct', isAuth, isAdmin, productController.addProduct);
