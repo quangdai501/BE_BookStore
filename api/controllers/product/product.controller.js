@@ -3,6 +3,7 @@ const Category = require('../../models/category.model');
 const Publisher = require('../../models/publisher.model');
 const Author = require('../../models/author.model');
 const Review = require('../../models/review.model');
+const Order = require('../../models/bill.model');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -10,6 +11,57 @@ const getPagination = (page, size) => {
     const limit = size ? size : 12;
     const offset = page ? page : 1;
     return { limit, offset };
+}
+
+const getAllUserHadBoughtProduct = async(productId) => {
+    const users = await Order.aggregate([
+        { $unwind: "$billDetail" },
+        {
+            $match: {
+                "billDetail.productId": ObjectId(productId)
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    productId: "$billDetail.productId",
+                    user_id: "$user_id"
+                }
+            }
+        },
+        // { $project: { user_id: 1 } }
+
+    ]);
+    // convert users to map // improve search with O(1)
+    const hash = Object.fromEntries(
+        users.map(object => [object._id.user_id, 1])
+    )
+    return hash;
+}
+
+const getAllReview = async(productId) => {
+    const reviews = await Review.find({ product: productId })
+        //users had bought the product
+    const hash = await getAllUserHadBoughtProduct(productId);
+    //convert reviews to dto
+    const reviewsDto = reviews.map(item => {
+        const newItem = {
+                user: item.user,
+                product: item.product,
+                name: item.name,
+                rating: item.rating,
+                comment: item.comment,
+                updatedAt: item.updatedAt,
+                isPurchase: false
+            }
+            //if user in hash isPurchase equal true
+        if (item.user in hash) {
+            newItem.isPurchase = true
+        }
+
+        return newItem;
+    })
+    return reviewsDto;
 }
 
 class ProductController {
@@ -203,20 +255,15 @@ class ProductController {
                             as: 'authors',
                         }
                     },
-                    {
-                        $lookup: {
-                            from: Review.collection.name,
-                            localField: '_id',
-                            foreignField: 'product',
-                            as: 'reviews',
-                        }
-                    },
                     { $unwind: "$authors" },
                     { $match: { _id: ObjectId(productId) } }
                 ]
             );
+            const reviewDto = await getAllReview(productId);
 
-            res.send(product[0]);
+            const productDto = {...product[0] }
+            productDto.reviews = reviewDto;
+            res.send(productDto);
         } catch {
             res.status(404).send({ message: "Không tìm thấy sản phẩm!" });
         }
@@ -325,20 +372,31 @@ class ProductController {
 
     //[PATCH] /api/products/updateProductQuantity/:productID
     async updateProductQuantityByID(req, res) {
-        const qty = req.body.qty;
-        try {
-            const update = await Product.updateOne({ _id: req.params.productID }, {
-                $set: {
-                    quantity: qty
-                }
-            });
-            res.send(update);
-        } catch (error) {
-            res.send({ message: error.message });
+            const qty = req.body.qty;
+            try {
+                const update = await Product.updateOne({ _id: req.params.productID }, {
+                    $set: {
+                        quantity: qty
+                    }
+                });
+                res.send(update);
+            } catch (error) {
+                res.send({ message: error.message });
+            }
         }
-    }
+        //get all review by product id
+        //[get] /api/products/:id/reviews
 
-    //[post] /api/products/createreview/:productID
+    async getAllReviewById(req, res) {
+            const productId = req.params.id;
+            try {
+                const reviewsDto = await getAllReview(productId);
+                res.status(200).send(reviewsDto);
+            } catch (error) {
+                res.status(501).send({ message: error.message });
+            }
+        }
+        //[post] /api/products/createreview/:productID
     async createReview(req, res) {
         const { rating, comment } = req.body
         const productId = req.params.productID;
