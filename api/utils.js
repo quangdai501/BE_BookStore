@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-
+// const User = require('./models/user.model');
 const getToken = (user) => {
     return jwt.sign({
             _id: user._id,
@@ -18,10 +18,15 @@ const isAuth = (req, res, next) => {
         const authentizationHeaders = req.headers.authentization;
         const token = authentizationHeaders.split(' ')[1];
         if (token) {
-            jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
+            jwt.verify(token, process.env.JWT_SECRET, async(err, decode) => {
                 if (err) {
                     return res.status(401).send({ message: 'Invalid Token' });
                 }
+                //This code will make our app slow down.
+                // const currentUser = await User.findById(decode._id)
+                // if (!currentUser || !currentUser.isActive) {
+                //     return res.status(401).send({ message: 'User got banned from admin.' });
+                // }
                 req.user = decode;
                 next();
                 return;

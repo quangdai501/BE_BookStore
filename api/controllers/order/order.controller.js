@@ -38,6 +38,7 @@ const updateProductAfterOrder = async(billDetails, products) => {
         for (let i = 0; i < products.length; i++) {
             products[i].isDelete = false;
             products[i].quantity = products[i].quantity - billDetails[i].qty;
+            products[i].sold = products[i].sold + billDetails[i].qty;
             await products[i].save()
         }
         return true
