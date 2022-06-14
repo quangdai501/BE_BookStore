@@ -60,6 +60,10 @@ class LoginController {
             });
             if (user) {
                 const userInfo = createUserResponse(user)
+                if (!user.isActive) {
+                    res.status(401).send({ message: 'Tài khoản của bạn đang bị cấm truy cập' });
+                    return
+                }
                 res.send(userInfo);
                 return;
             } else {
