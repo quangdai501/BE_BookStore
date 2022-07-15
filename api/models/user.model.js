@@ -38,6 +38,10 @@ const UserSchema = new Schema({
     point: {
         type: Number,
         default: 0
+    },
+    coupons: {
+        type: Array,
+        require: false
     }
 })
 

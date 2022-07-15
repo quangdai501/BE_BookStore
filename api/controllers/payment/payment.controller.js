@@ -1,6 +1,7 @@
 const Order = require('../../models/bill.model');
 const Product = require('../../models/product.model')
 const User = require('../../models/user.model');
+const Coupon = require('../../models/coupon.model');
 
 const querystring = require("qs");
 const sha256 = require("sha256");
@@ -97,6 +98,17 @@ class paymentController {
                 console.log(products);
                 const user = await User.findById(req.user._id);
                 user.point = user.point + req.body.total / 1000;
+                if (req.body.coupon) {
+                    const coupons = [...user.coupons];
+                    coupons.push(bill.coupon)
+                    user.coupons = coupons;
+                    const cp = await Coupon.findById(req.body.coupon.id);
+                    console.log(cp)
+                    cp.available = cp.available - 1;
+                    await cp.save()
+                }
+
+                user.coupons
                 await user.save();
 
                 const order = await bill.save();

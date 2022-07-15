@@ -61,12 +61,7 @@ const billSchema = new Schema({
 
     coupon: {
         require: false,
-        code: {
-            type: String
-        },
-        discount: {
-            type: Number
-        }
+        type: Object
     }
 
 }, {

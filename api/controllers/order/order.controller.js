@@ -1,6 +1,7 @@
 const Order = require('../../models/bill.model');
 const Product = require('../../models/product.model')
 const User = require('../../models/user.model');
+const Coupon = require('../../models/coupon.model');
 
 const sendMail = require('../../sendEmail');
 const axios = require('axios');
@@ -121,6 +122,14 @@ class orderController {
 
                     const user = await User.findById(req.user._id);
                     user.point = user.point + req.body.total / 1000;
+                    if (req.body.coupon) {
+                        const coupons = [...user.coupons];
+                        coupons.push(bill.coupon)
+                        user.coupons = coupons;
+                        const cp = await Coupon.findById(req.body.coupon.id);
+                        cp.available = cp.available - 1;
+                        await cp.save()
+                    }
                     await user.save();
 
                     const addToCart = await bill.save();
