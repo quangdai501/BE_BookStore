@@ -96,7 +96,7 @@ class paymentController {
                 }
                 console.log(products);
                 const user = await User.findById(req.user._id);
-                user.point = user.point + req.body.total;
+                user.point = user.point + req.body.total / 1000;
                 await user.save();
 
                 const order = await bill.save();

@@ -120,7 +120,7 @@ class orderController {
                     }
 
                     const user = await User.findById(req.user._id);
-                    user.point = user.point + req.body.total;
+                    user.point = user.point + req.body.total / 1000;
                     await user.save();
 
                     const addToCart = await bill.save();
