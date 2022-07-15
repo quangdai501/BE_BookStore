@@ -1,5 +1,7 @@
 const Order = require('../../models/bill.model');
 const Product = require('../../models/product.model')
+const User = require('../../models/user.model');
+
 const sendMail = require('../../sendEmail');
 const axios = require('axios');
 const mongoose = require('mongoose');
@@ -116,6 +118,10 @@ class orderController {
                     if (isValidBillDetails) {
                         await updateProductAfterOrder(req.body.billDetail, products);
                     }
+
+                    const user = await User.findById(req.user._id);
+                    user.point = user.point + req.body.total;
+                    await user.save();
 
                     const addToCart = await bill.save();
                     if (addToCart) {

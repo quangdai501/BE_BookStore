@@ -21,6 +21,14 @@ const CouponSchema = new Schema({
         type: Number,
         required: true,
     },
+    min_order: {
+        type: Number,
+        default: 0
+    },
+    point_condition: {
+        type: Number,
+        default: 0
+    },
     max_discount: {
         type: Number,
         required: true,

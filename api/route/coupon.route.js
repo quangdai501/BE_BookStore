@@ -4,9 +4,9 @@ const { isAuth, isAdmin } = require('../utils');
 
 const couponController = require('../controllers/coupon/coupon.controller');
 
-router.get('/', couponController.getAllCoupon);
+router.get('/', isAuth, couponController.getAllCoupon);
 
-router.get('/is-valid', couponController.isValidCoupon);
+router.get('/is-valid', isAuth, couponController.isValidCoupon);
 
 router.post('/', isAuth, isAdmin, couponController.createCoupon);
 

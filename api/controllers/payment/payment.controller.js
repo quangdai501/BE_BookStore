@@ -1,5 +1,7 @@
 const Order = require('../../models/bill.model');
 const Product = require('../../models/product.model')
+const User = require('../../models/user.model');
+
 const querystring = require("qs");
 const sha256 = require("sha256");
 const dateFormat = require("dateformat");
@@ -93,6 +95,9 @@ class paymentController {
                     await updateProductAfterOrder(req.body.billDetail, products);
                 }
                 console.log(products);
+                const user = await User.findById(req.user._id);
+                user.point = user.point + req.body.total;
+                await user.save();
 
                 const order = await bill.save();
                 let vnpUrl = url;

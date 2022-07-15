@@ -1,10 +1,21 @@
 const Coupon = require('../../models/coupon.model');
+const User = require('../../models/user.model');
 
 class CouponController {
     // [GET] - /api/coupons
     async getAllCoupon(req, res) {
+        const isValid = req.query.isValid;
         try {
-            const coupons = await Coupon.find();
+            let query = {};
+            if (isValid) {
+                const user = await User.findById(req.user._id);
+                query = {
+                    point_condition: {
+                        $lte: user.point
+                    }
+                }
+            }
+            const coupons = await Coupon.find(query);
             if (coupons) {
                 res.send(coupons);
             }
@@ -17,6 +28,8 @@ class CouponController {
     // [GET] - /api/coupons/is-valid?code
     async isValidCoupon(req, res) {
         const code = req.query.code;
+        const userId = req.user._id;
+        const total = req.query.total;
         try {
             const coupon = await Coupon.findOne({ code: code });
             if (!coupon) {
@@ -24,14 +37,21 @@ class CouponController {
                 return
             }
 
-            if ((coupon.begin <= Date.now() && Date.now() <= coupon.end) && coupon.available > 0) {
-                res.send({ isValid: true, data: coupon });
+
+            if ((coupon.begin > Date.now() || Date.now() > coupon.end) || coupon.available <= 0 || !total) {
+                res.status(400).send({ isValid: false, message: "Mã giảm giá không hợp lệ" });
                 return
             }
-            res.status(400).send({ isValid: false, message: "Mã giảm giá không hợp lệ" });
+            const user = await User.findById(userId);
+
+            if (user.point < coupon.point_condition || total < coupon.min_order) {
+                res.status(400).send({ isValid: false, message: "Đơn hàng không đủ điều kiện" });
+                return
+            }
+
+            res.send({ isValid: true, data: coupon });
         } catch (error) {
-            res.status(400).send({ isValid: false, error: error.message });
-            // res.send({ msg: error.message });
+            res.status(400).send({ isValid: false, message: error.message });
         }
     }
 

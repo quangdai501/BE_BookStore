@@ -34,6 +34,10 @@ const UserSchema = new Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    point: {
+        type: Number,
+        default: 0
     }
 })
 
