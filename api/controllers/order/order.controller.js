@@ -101,6 +101,9 @@ class orderController {
                 const date = new Date();
                 bill.paidAt = date;
             }
+            if (req.body.coupon) {
+                bill.coupon = req.body.coupon;
+            }
             try {
                 const session = await mongoose.startSession();
 

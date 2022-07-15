@@ -75,6 +75,9 @@ class paymentController {
         bill.deliveredStatus = req.body.diliveryStatus;
         const date = new Date();
         bill.paidAt = date;
+        if (req.body.coupon) {
+            bill.coupon = req.body.coupon;
+        }
 
         try {
 
