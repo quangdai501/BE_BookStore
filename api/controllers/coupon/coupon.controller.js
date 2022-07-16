@@ -62,6 +62,7 @@ class CouponController {
 
             if (user.coupons && user.coupons.find(item => item.code === code)) {
                 res.status(400).send({ isValid: false, message: "Mã giảm giá đã được sử dụng" });
+                return
             }
 
             res.send({ isValid: true, data: coupon });
