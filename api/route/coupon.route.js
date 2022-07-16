@@ -8,6 +8,8 @@ router.get('/', isAuth, couponController.getAllCoupon);
 
 router.get('/is-valid', isAuth, couponController.isValidCoupon);
 
+router.get('/:id', isAuth, isAdmin, couponController.getCoupon);
+
 router.post('/', isAuth, isAdmin, couponController.createCoupon);
 
 router.patch('/:id', isAuth, isAdmin, couponController.updateCoupon);

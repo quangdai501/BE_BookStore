@@ -25,6 +25,17 @@ class CouponController {
         }
     }
 
+     // [GET] - /api/coupons/:id
+     async getCoupon(req, res) {
+        const id = req.params.id;
+        try {
+            const coupon = await Coupon.findById(id);
+            res.send(coupon);
+        } catch (error) {
+            res.status(401).send({ error: error.message });
+        }
+    }
+
     // [GET] - /api/coupons/is-valid?code
     async isValidCoupon(req, res) {
         const code = req.query.code;
