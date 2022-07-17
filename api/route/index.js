@@ -11,7 +11,6 @@ const authorRoute = require('./author.route');
 const publisherRoute = require('./publisher.route');
 const paymentRoute = require('./payment.route');
 const statisticRoute = require('./statistic.route')
-const couponRoute = require('./coupon.route')
 router.use('/auth', authRoute);
 router.use('/products', productRoute);
 router.use('/shoping-cart', shopingCartRoute);
@@ -22,5 +21,4 @@ router.use('/author', authorRoute);
 router.use('/publisher', publisherRoute);
 router.use('/payment', paymentRoute)
 router.use('/statistic', statisticRoute)
-router.use('/coupons', couponRoute)
 module.exports = router;

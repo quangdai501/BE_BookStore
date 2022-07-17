@@ -8,43 +8,45 @@ const billSchema = new Schema({
         require: true,
     },
     name: {
-        type: String,
+        type: String, 
         require: true
     },
     total: {
         type: Number,
     },
     orderCode: {
-        type: String,
+        type: String, 
         require: true
     },
     address: {
-        to_ward_code: {
-            type: String
-        },
-        to_district_id: {
-            type: String
-        },
-        province: { type: String },
-        district: { type: String },
-        ward: { type: String },
-        detail: { type: String },
+       to_ward_code:{
+           type: String
+       },
+       to_district_id: {
+           type: String
+       },
+       province: {type: String},
+       district: {type: String},
+       ward: {type: String},
+       detail: {type: String},
     },
     phone: {
         type: String,
         required: true
     },
-    billDetail: [{
-        productId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'product',
-            required: true
+    billDetail: [
+        {
+            productId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'product',
+                required: true
+            },
+            name: { type: String, required: true },
+            image: { type: String, required: true },
+            price: { type: Number, required: true },
+            qty: { type: Number, required: true },
         },
-        name: { type: String, required: true },
-        image: { type: String, required: true },
-        price: { type: Number, required: true },
-        qty: { type: Number, required: true },
-    }, ],
+    ],
 
     paidAt: { type: Date },
     deliveryStatus: {
@@ -52,20 +54,16 @@ const billSchema = new Schema({
         default: 'Đang chờ xử lý'
     },
     deliveredAt: { type: Date },
-
+  
     payment: {
         type: String,
         require: true,
         default: 'Thanh toán khi nhận hàng'
-    },
-
-    coupon: {
-        require: false,
-        type: Object
     }
-
-}, {
-    timestamps: true
-});
+},
+    {
+        timestamps: true
+    }
+);
 
 module.exports = mongoose.model('bill', billSchema);
